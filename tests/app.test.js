@@ -125,6 +125,9 @@ function loadApp() {
       saveParticipant: function (participant) {
         savedParticipant = participant;
       },
+      loadBracket: function () {
+        return null;
+      },
       saveBracket: function (bracket) {
         savedBracket = bracket;
       }
@@ -264,4 +267,54 @@ test('saveParticipantRow does not double-render when syncing an existing bracket
   assert.equal(loaded.getSyncCalls(), 1);
   assert.equal(loaded.getSavedBracket().source, originalBracket);
   assert.equal(app.bracket.participantId, 'row-2');
+});
+
+test('renderParticipantTable displays a participant drawing-number input after HC', () => {
+  const loaded = loadApp();
+  const app = loaded.BilposApp;
+  const tbody = loaded.document.createElement('tbody');
+  tbody.id = 'participant-tbody';
+  loaded.document.body.appendChild(tbody);
+  app.tournament = { size: 2 };
+  app.participants = [{
+    id: 'row-1',
+    slot: 1,
+    drawingNumber: 2,
+    name: 'Alpha',
+    hc: 'HC 3B',
+    status: ''
+  }];
+
+  app.renderParticipantTable();
+
+  const hcPosition = tbody.innerHTML.indexOf('hc-select');
+  const bracketPosition = tbody.innerHTML.indexOf('bracket-input');
+  const deletePosition = tbody.innerHTML.indexOf('btn-delete-row');
+  assert.ok(hcPosition >= 0);
+  assert.ok(bracketPosition > hcPosition);
+  assert.ok(deletePosition > bracketPosition);
+  assert.match(tbody.innerHTML, /class="table-input bracket-input"[^>]*value="2"/);
+});
+
+test('saveParticipantRow preserves an assigned drawing number when participant details change', () => {
+  const loaded = loadApp();
+  const app = loaded.BilposApp;
+  app.participants = [{
+    id: 'row-1',
+    slot: 1,
+    drawingNumber: 4,
+    name: 'Before',
+    hc: 'HC 3B',
+    status: 'cash'
+  }];
+  appendRowFixture(loaded.document, 1, {
+    name: 'After',
+    hcValue: 'HC 3N',
+    status: 'cash'
+  });
+  app.renderStats = function () {};
+
+  app.saveParticipantRow(1);
+
+  assert.equal(loaded.getSavedParticipant().drawingNumber, 4);
 });

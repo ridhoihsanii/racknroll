@@ -121,3 +121,17 @@ test('index.html includes all required sections, nav items, and DOM ids', () => 
     assert.match(source, new RegExp(snippet.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   });
 });
+
+test('participant section exposes Excel transfer controls and the Bracket column', () => {
+  const source = readIndex();
+  const participantSection = source.split('id="section-participants"')[1].split('id="section-bracket"')[0];
+  const transferModuleIndex = source.indexOf('assets/js/excel-transfer.js');
+  const appModuleIndex = source.indexOf('assets/js/app.js');
+
+  assert.match(participantSection, /id="btn-export-excel"/);
+  assert.match(participantSection, /id="btn-import-excel"/);
+  assert.match(participantSection, /id="import-excel-input"/);
+  assert.match(participantSection, /<th[^>]*>BRACKET<\/th>/);
+  assert.ok(transferModuleIndex >= 0);
+  assert.ok(transferModuleIndex < appModuleIndex);
+});

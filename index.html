@@ -145,6 +145,13 @@
             <input type="text" class="search-input" id="participant-search" placeholder="Cari nama..."/>
           </div>
           <div style="flex:1"></div>
+          <button type="button" class="btn-export btn-export-excel" id="btn-export-excel">
+            <i class="fas fa-file-export me-1"></i> Export Excel
+          </button>
+          <button type="button" class="btn-export btn-import" id="btn-import-excel">
+            <i class="fas fa-file-import me-1"></i> Import Excel
+          </button>
+          <input type="file" id="import-excel-input" accept=".xlsx,.xls" style="display:none"/>
           <button class="btn-export btn-export-pdf" id="btn-delete-all">
             <i class="fas fa-trash-alt me-1"></i> Hapus Semua Peserta
           </button>
@@ -160,6 +167,7 @@
                   
                   <th>NAMA PESERTA</th>
                   <th style="width:130px">HC</th>
+                  <th style="width:90px">BRACKET</th>
                   <th style="width:80px">-</th>
                 </tr>
               </thead>
@@ -201,6 +209,7 @@
   <script src="assets/js/tournament.js"></script>
   <script src="assets/js/ui.js"></script>
   <script src="assets/js/theme.js"></script>
+  <script src="assets/js/excel-transfer.js"></script>
   <script src="assets/js/app.js"></script>
   <!-- Firebase Realtime Database -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>

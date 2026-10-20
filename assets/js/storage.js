@@ -127,6 +127,52 @@ var BilposStorage = {
     return data;
   },
 
+  replaceTournamentTransfer: function (tournament, participants, bracketData) {
+    if (!tournament || typeof tournament !== 'object' ||
+        !Array.isArray(participants) ||
+        !bracketData || typeof bracketData !== 'object') {
+      throw new Error('Data transfer tournament tidak valid');
+    }
+
+    var keys = [this.KEYS.TOURNAMENT, this.KEYS.PARTICIPANTS, this.KEYS.BRACKET];
+    var values = [
+      JSON.stringify(Object.assign({}, this.DEFAULT_TOURNAMENT, tournament)),
+      JSON.stringify(participants),
+      JSON.stringify(bracketData)
+    ];
+    var previousValues = keys.map(function (key) {
+      return localStorage.getItem(key);
+    });
+
+    try {
+      keys.forEach(function (key, index) {
+        localStorage.setItem(key, values[index]);
+      });
+    } catch (writeError) {
+      var rollbackErrors = [];
+      keys.forEach(function (key, index) {
+        try {
+          if (previousValues[index] == null) {
+            localStorage.removeItem(key);
+          } else {
+            localStorage.setItem(key, previousValues[index]);
+          }
+        } catch (rollbackError) {
+          console.error('BilposStorage transfer rollback failed:', rollbackError.message);
+          rollbackErrors.push(rollbackError.message);
+        }
+      });
+      if (rollbackErrors.length) {
+        throw new Error(
+          'Gagal menyimpan data transfer: ' + writeError.message +
+          '. Pemulihan data sebelumnya tidak lengkap: ' + rollbackErrors.join('; ')
+        );
+      }
+      throw writeError;
+    }
+    return true;
+  },
+
   loadBracket: function () {
     return this._safeParse(localStorage.getItem(this.KEYS.BRACKET), null);
   },

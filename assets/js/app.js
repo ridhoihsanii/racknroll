@@ -72,6 +72,20 @@
     );
   }
 
+  function bracketHasResults(savedBracket) {
+    var rounds = savedBracket && savedBracket.bracket && savedBracket.bracket.rounds;
+    if (!Array.isArray(rounds)) return false;
+    return rounds.some(function (round) {
+      return Array.isArray(round) && round.some(function (match) {
+        return match && (
+          match.winner ||
+          (match.score1 != null && String(match.score1) !== '') ||
+          (match.score2 != null && String(match.score2) !== '')
+        );
+      });
+    });
+  }
+
   function sortByName(list, order) {
     return list.sort(function (left, right) {
       var leftName = String(left && left.name ? left.name : '').trim().toLowerCase();
@@ -320,6 +334,9 @@
               '<input type="text" class="hc-custom-input ' + customVisible + '" data-row="' + i + '" placeholder="Tulis HC..." value="' + escapeHtml(hcCustom) + '" maxlength="20"/>' +
             '</td>' +
             '<td>' +
+              '<input type="number" class="table-input bracket-input" data-row="' + i + '" min="1" max="' + size + '" placeholder="-" value="' + escapeHtml(participant && participant.drawingNumber != null ? participant.drawingNumber : '') + '"/>' +
+            '</td>' +
+            '<td>' +
               '<button class="btn-delete-row btn-export" data-row="' + i + '"><i class="fas fa-trash"></i></button>' +
             '</td>' +
           '</tr>'
@@ -436,6 +453,10 @@
         });
 
         participantTbody.addEventListener('change', function (e) {
+          if (e.target.classList.contains('bracket-input')) {
+            self.saveDrawingNumber(e.target);
+            return;
+          }
           if (!e.target.classList.contains('hc-select')) return;
           var rowIndex = e.target.dataset.row;
           var customInput = document.querySelector('.hc-custom-input[data-row="' + rowIndex + '"]');
@@ -547,7 +568,20 @@
 
       var importExcelInput = getElement('import-excel-input');
       if (importExcelInput) {
-        importExcelInput.addEventListener('change', function (e) { self.importExcel(e.target.files[0]); });
+        importExcelInput.addEventListener('change', function (e) {
+          try {
+            self.importExcel(e.target.files[0]);
+          } finally {
+            e.target.value = '';
+          }
+        });
+      }
+
+      var importExcelButton = getElement('btn-import-excel');
+      if (importExcelButton && importExcelInput) {
+        importExcelButton.addEventListener('click', function () {
+          importExcelInput.click();
+        });
       }
 
       var exportJsonBtn = getElement('btn-export-json');
@@ -593,6 +627,7 @@
       return found || {
         id: participantId,
         slot: parseInt(rowIndex, 10),
+        drawingNumber: null,
         phone: '',
         name: '',
         hc: '',
@@ -622,6 +657,9 @@
           name: name ? name.value.trim() : '',
           hc: hc,
           hcCustom: hcValue === 'custom' ? hcCustom : '',
+          drawingNumber: existingParticipant && existingParticipant.drawingNumber != null
+            ? existingParticipant.drawingNumber
+            : null,
           status: rowEl ? rowEl.dataset.currentStatus || '' : '',
           _sourceRow: i
         });
@@ -644,6 +682,7 @@
           name: sortedRows[i].name,
           hc: sortedRows[i].hc,
           hcCustom: sortedRows[i].hcCustom,
+          drawingNumber: sortedRows[i].drawingNumber,
           status: sortedRows[i].status
         });
       }
@@ -651,6 +690,69 @@
       this.participants = BilposStorage.loadParticipants();
       this.renderParticipantTable();
       this.renderStats();
+    },
+
+    saveDrawingNumber: function (input) {
+      var rowIndex = parseInt(input.dataset.row, 10);
+      var participantId = 'row-' + rowIndex;
+      var participants = Array.isArray(this.participants) ? this.participants : [];
+      var existingParticipant = participants.find(function (participant) {
+        return participant && String(participant.id) === participantId;
+      });
+      var previousNumber = existingParticipant && existingParticipant.drawingNumber != null
+        ? Number(existingParticipant.drawingNumber)
+        : null;
+      var nextNumber;
+      var savedBracket;
+      var nextParticipants;
+      var updatedParticipant;
+      var size = parseInt(this.tournament && this.tournament.size, 10) || 32;
+
+      if (!existingParticipant) {
+        BilposUI.showToast('Isi data peserta sebelum menentukan nomor Bracket', 'danger');
+        input.value = '';
+        return;
+      }
+
+      try {
+        nextNumber = BilposExcelTransfer.validateDrawingNumber(
+          input.value,
+          size,
+          participants,
+          participantId
+        );
+      } catch (error) {
+        BilposUI.showToast(error.message || 'Nomor Bracket tidak valid', 'danger');
+        input.value = previousNumber == null ? '' : String(previousNumber);
+        return;
+      }
+
+      if (nextNumber === previousNumber) return;
+      savedBracket = BilposStorage.loadBracket();
+      if (bracketHasResults(savedBracket) &&
+          !confirm('Mengubah nomor Bracket akan mengatur ulang hasil pertandingan. Lanjutkan?')) {
+        input.value = previousNumber == null ? '' : String(previousNumber);
+        return;
+      }
+
+      updatedParticipant = Object.assign({}, existingParticipant, {
+        drawingNumber: nextNumber
+      });
+      nextParticipants = participants.map(function (participant) {
+        return participant && String(participant.id) === participantId
+          ? updatedParticipant
+          : participant;
+      });
+      BilposStorage.saveParticipants(nextParticipants);
+      this.participants = BilposStorage.loadParticipants();
+      BilposStorage.saveBracket({
+        bracket: BilposTournament.generateBracket(size, this.participants),
+        liveMatchIds: []
+      });
+      this.renderParticipantTable();
+      this.renderStats();
+      dispatchParticipantsUpdated();
+      dispatchBracketActivated();
     },
 
     exportJSON: function () {
@@ -682,56 +784,84 @@
     },
 
     exportExcel: function () {
-      var participants = BilposStorage.loadParticipants();
-      var rows = participants.map(function (p, i) {
-        return {
-          'No': i + 1,
-          'Nama': p.name || '',
-          'No. HP': p.phone || '',
-          'HC': p.hc || '',
-          'Status Bayar': p.status || ''
-        };
-      });
-      if (typeof XLSX === 'undefined') {
+      if (typeof XLSX === 'undefined' || typeof BilposExcelTransfer === 'undefined') {
         BilposUI.showToast('Library Excel tidak tersedia', 'danger');
         return;
       }
-      var wb = XLSX.utils.book_new();
-      var ws = XLSX.utils.json_to_sheet(rows);
-      XLSX.utils.book_append_sheet(wb, ws, 'Peserta');
-      XLSX.writeFile(wb, 'bilpos-peserta-' + new Date().toISOString().slice(0, 10) + '.xlsx');
-      BilposUI.showToast('Excel berhasil diekspor!', 'success');
+      try {
+        var participants = BilposStorage.loadParticipants();
+        var tournament = BilposStorage.loadTournament();
+        var savedBracket = BilposStorage.loadBracket();
+        if (!savedBracket || !savedBracket.bracket) {
+          savedBracket = {
+            bracket: BilposTournament.generateBracket(tournament.size, participants),
+            liveMatchIds: []
+          };
+        }
+        var workbook = BilposExcelTransfer.buildWorkbook(
+          XLSX,
+          participants,
+          tournament,
+          savedBracket
+        );
+        XLSX.writeFile(workbook, 'rack-n-roll-peserta-' + new Date().toISOString().slice(0, 10) + '.xlsx');
+        BilposUI.showToast('Excel berhasil diekspor!', 'success');
+      } catch (error) {
+        BilposUI.showToast('Gagal mengekspor Excel: ' + error.message, 'danger');
+      }
     },
 
     importExcel: function (file) {
-      if (!file || typeof XLSX === 'undefined') {
-        BilposUI.showToast('File atau library tidak tersedia', 'danger');
+      if (!file) return;
+      if (typeof XLSX === 'undefined' || typeof BilposExcelTransfer === 'undefined') {
+        BilposUI.showToast('Library Excel tidak tersedia', 'danger');
         return;
       }
+      if (typeof FileReader === 'undefined') {
+        BilposUI.showToast('Pembaca file tidak tersedia', 'danger');
+        return;
+      }
+
+      var self = this;
       var reader = new FileReader();
-      reader.onload = function (e) {
+      reader.onload = function (event) {
         try {
-          var wb = XLSX.read(e.target.result, { type: 'array' });
-          var ws = wb.Sheets[wb.SheetNames[0]];
-          var rows = XLSX.utils.sheet_to_json(ws);
-          rows.forEach(function (row, i) {
-            var p = {
-              id: 'row-' + (i + 1),
-              slot: i + 1,
-              phone: String(row['No. HP'] || ''),
-              name: String(row['Nama'] || ''),
-              hc: String(row['HC'] || ''),
-              status: String(row['Status Bayar'] || '')
-            };
-            BilposStorage.saveParticipant(p);
-          });
+          var workbook = XLSX.read(event.target.result, { type: 'array' });
+          var parsed = BilposExcelTransfer.parseWorkbook(
+            XLSX,
+            workbook,
+            BilposStorage.loadTournament()
+          );
+          var bracketData = parsed.bracket || {
+            bracket: BilposTournament.generateBracket(parsed.tournament.size, parsed.participants),
+            liveMatchIds: []
+          };
+
+          BilposStorage.replaceTournamentTransfer(
+            parsed.tournament,
+            parsed.participants,
+            bracketData
+          );
+          self.tournament = parsed.tournament;
+          self.participants = parsed.participants;
+          self.renderTournamentSetup();
+          self.renderParticipantTable();
+          self.renderStats();
+          dispatchParticipantsUpdated();
+          dispatchBracketActivated();
           BilposUI.showToast('Excel berhasil diimpor!', 'success');
-          setTimeout(function () { location.reload(); }, 1000);
-        } catch (err) {
-          BilposUI.showToast('Gagal membaca file Excel!', 'danger');
+        } catch (error) {
+          BilposUI.showToast('Gagal mengimpor Excel: ' + error.message, 'danger');
         }
       };
-      reader.readAsArrayBuffer(file);
+      reader.onerror = function () {
+        BilposUI.showToast('Gagal membaca file Excel', 'danger');
+      };
+      try {
+        reader.readAsArrayBuffer(file);
+      } catch (error) {
+        BilposUI.showToast('Gagal membaca file Excel: ' + error.message, 'danger');
+      }
     },
 
     saveParticipantRow: function (rowIndex) {
@@ -755,6 +885,9 @@
         name: name,
         hc: hc,
         hcCustom: hcValue === 'custom' ? hcCustom : '',
+        drawingNumber: existingParticipant && existingParticipant.drawingNumber != null
+          ? existingParticipant.drawingNumber
+          : null,
         status: status
       };
 

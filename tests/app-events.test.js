@@ -216,8 +216,10 @@ function loadApp(options) {
   const toastCalls = [];
   const savedParticipantsCalls = [];
   const savedBracketCalls = [];
+  const transferCalls = [];
   const dispatchedEvents = [];
   let participants = config.participants ? config.participants.slice() : [];
+  let tournament = config.tournament || { size: 2, venue: '', status: '' };
 
   window.addEventListener = function(eventName, handler) {};
   window.dispatchEvent = function(event) {
@@ -231,7 +233,7 @@ function loadApp(options) {
     CustomEvent: function(type) { return { type: type }; },
     BilposStorage: {
       loadTournament: function () {
-        return { size: 2, venue: '', status: '' };
+        return tournament;
       },
       loadParticipants: function () {
         return participants;
@@ -243,12 +245,37 @@ function loadApp(options) {
         return { zoom: 100 };
       },
       saveTournament: function(data) {},
+      replaceTournamentTransfer: function (nextTournament, nextParticipants, bracketData) {
+        tournament = nextTournament;
+        participants = nextParticipants;
+        config.bracket = bracketData;
+        transferCalls.push({
+          tournament: nextTournament,
+          participants: nextParticipants,
+          bracket: bracketData
+        });
+        return true;
+      },
       saveParticipants: function (nextParticipants) {
         participants = nextParticipants;
         savedParticipantsCalls.push(nextParticipants);
       },
       saveBracket: function (bracket) {
+        config.bracket = bracket;
         savedBracketCalls.push(bracket);
+      }
+    },
+    confirm: config.confirm || function () { return true; },
+    BilposExcelTransfer: config.excelTransfer || {
+      validateDrawingNumber: function (value, size, existingParticipants, excludeId) {
+        if (value == null || String(value).trim() === '') return null;
+        if (!/^\d+$/.test(String(value).trim())) throw new Error('Bracket slot harus bilangan bulat');
+        const slot = Number(value);
+        if (slot < 1 || slot > size) throw new Error('Bracket slot di luar batas');
+        if (existingParticipants.some((participant) => participant.id !== excludeId && Number(participant.drawingNumber) === slot)) {
+          throw new Error('Bracket slot tidak boleh duplikat');
+        }
+        return slot;
       }
     },
     BilposDrawing: {
@@ -264,6 +291,20 @@ function loadApp(options) {
           matchIdx: matchIdx,
           winner: winner
         };
+      },
+      generateBracket: config.generateBracket || function (size, currentParticipants) {
+        return {
+          size: size,
+          rounds: [[{
+            id: 'r0m0',
+            p1: currentParticipants[0] || null,
+            p2: null,
+            score1: '',
+            score2: '',
+            winner: null,
+            status: 'pending'
+          }]]
+        };
       }
     },
     BilposUI: {
@@ -273,10 +314,13 @@ function loadApp(options) {
       updateHeader: function() {}
     }
   };
+  context.XLSX = config.xlsx;
+  context.FileReader = config.FileReader;
 
   window.BilposStorage = context.BilposStorage;
   window.BilposDrawing = context.BilposDrawing;
   window.BilposTournament = context.BilposTournament;
+  window.BilposExcelTransfer = context.BilposExcelTransfer;
   window.BilposUI = context.BilposUI;
 
   const appPath = path.join(process.cwd(), 'assets', 'js', 'app.js');
@@ -298,6 +342,12 @@ function loadApp(options) {
     },
     getParticipants: function () {
       return participants;
+    },
+    getTransferCalls: function () {
+      return transferCalls;
+    },
+    getTournament: function () {
+      return tournament;
     }
   };
 }
@@ -433,4 +483,390 @@ test('clicking bracket nav item dispatches bilpos:bracket-activated event', () =
     loaded.dispatchedEvents.includes('bilpos:bracket-activated'),
     'Expected bilpos:bracket-activated to be dispatched when bracket nav is clicked'
   );
+});
+
+test('bracket assignment rejects duplicate and out-of-range slots without writes', () => {
+  const participants = [
+    { id: 'row-1', slot: 1, drawingNumber: 1, name: 'Alpha' },
+    { id: 'row-2', slot: 2, drawingNumber: 2, name: 'Bravo' }
+  ];
+  const loaded = loadApp({ participants: participants });
+  const app = loaded.BilposApp;
+  const tbody = appendElement(loaded.document, 'tbody', { id: 'participant-tbody' });
+  app.tournament = { size: 2 };
+  app.participants = participants;
+  app.wireEvents();
+
+  const duplicateInput = appendElement(loaded.document, 'input', {
+    className: 'bracket-input',
+    dataset: { row: 1 },
+    value: '2'
+  });
+  tbody.dispatchEvent('change', { target: duplicateInput });
+  duplicateInput.value = '3';
+  tbody.dispatchEvent('change', { target: duplicateInput });
+
+  assert.equal(loaded.getSavedParticipantsCalls().length, 0);
+  assert.equal(loaded.getSavedBracketCalls().length, 0);
+  assert.equal(loaded.getParticipants()[0].drawingNumber, 1);
+  assert.equal(loaded.toastCalls.length, 2);
+  assert.ok(loaded.toastCalls.every((toast) => toast.type === 'danger'));
+});
+
+test('bracket assignment cancels result reset or rebuilds and clears old results', () => {
+  const participants = [
+    { id: 'row-1', slot: 1, drawingNumber: 1, name: 'Alpha' },
+    { id: 'row-2', slot: 2, drawingNumber: null, name: 'Bravo' }
+  ];
+  const oldBracket = {
+    bracket: {
+      size: 4,
+      rounds: [[{
+        id: 'r0m0',
+        p1: participants[0],
+        p2: participants[1],
+        score1: 7,
+        score2: 4,
+        winner: participants[0],
+        status: 'done'
+      }]]
+    },
+    liveMatchIds: ['r0m0']
+  };
+  let confirmCalls = 0;
+  let generatedBracket = null;
+  const loaded = loadApp({
+    participants: participants,
+    bracket: oldBracket,
+    confirm: function () {
+      confirmCalls += 1;
+      return confirmCalls > 1;
+    },
+    generateBracket: function (size, nextParticipants) {
+      generatedBracket = {
+        size: size,
+        rounds: [[{
+          id: 'r0m0',
+          p1: nextParticipants[0],
+          p2: nextParticipants[1],
+          score1: '',
+          score2: '',
+          winner: null,
+          status: 'pending'
+        }]]
+      };
+      return generatedBracket;
+    }
+  });
+  const app = loaded.BilposApp;
+  const tbody = appendElement(loaded.document, 'tbody', { id: 'participant-tbody' });
+  const input = appendElement(loaded.document, 'input', {
+    className: 'bracket-input',
+    dataset: { row: 1 },
+    value: '3'
+  });
+  app.tournament = { size: 4 };
+  app.participants = participants;
+  app.wireEvents();
+
+  tbody.dispatchEvent('change', { target: input });
+  assert.equal(input.value, '1');
+  assert.equal(loaded.getSavedParticipantsCalls().length, 0);
+  assert.equal(loaded.getSavedBracketCalls().length, 0);
+
+  input.value = '3';
+  tbody.dispatchEvent('change', { target: input });
+
+  assert.equal(loaded.getSavedParticipantsCalls().length, 1);
+  assert.equal(loaded.getParticipants()[0].drawingNumber, 3);
+  assert.equal(generatedBracket.rounds[0][0].score1, '');
+  assert.equal(generatedBracket.rounds[0][0].winner, null);
+  assert.deepEqual(JSON.parse(JSON.stringify(loaded.getSavedBracketCalls()[0].liveMatchIds)), []);
+  assert.ok(loaded.dispatchedEvents.includes('bilpos:participants-updated'));
+  assert.ok(loaded.dispatchedEvents.includes('bilpos:bracket-activated'));
+});
+
+test('sorting participants preserves their independently assigned drawing numbers', () => {
+  const participants = [
+    { id: 'row-1', slot: 1, drawingNumber: 1, name: 'Bravo', hc: '', status: '' },
+    { id: 'row-2', slot: 2, drawingNumber: 2, name: 'Alpha', hc: '', status: '' }
+  ];
+  const loaded = loadApp({ participants: participants });
+  const app = loaded.BilposApp;
+  app.tournament = { size: 2 };
+  app.participants = participants;
+  [1, 2].forEach(function (row) {
+    appendElement(loaded.document, 'tr', {
+      id: 'row-' + row,
+      dataset: { currentStatus: '' }
+    });
+  });
+  appendElement(loaded.document, 'input', {
+    className: 'name-input',
+    dataset: { row: 1 },
+    value: 'Bravo'
+  });
+  appendElement(loaded.document, 'select', {
+    className: 'hc-select',
+    dataset: { row: 1 },
+    value: ''
+  });
+  appendElement(loaded.document, 'input', {
+    className: 'hc-custom-input',
+    dataset: { row: 1 },
+    value: ''
+  });
+  appendElement(loaded.document, 'input', {
+    className: 'name-input',
+    dataset: { row: 2 },
+    value: 'Alpha'
+  });
+  appendElement(loaded.document, 'select', {
+    className: 'hc-select',
+    dataset: { row: 2 },
+    value: ''
+  });
+  appendElement(loaded.document, 'input', {
+    className: 'hc-custom-input',
+    dataset: { row: 2 },
+    value: ''
+  });
+
+  app.sortParticipants('az');
+
+  assert.deepEqual(JSON.parse(JSON.stringify(loaded.getParticipants().map((participant) => [
+    participant.name,
+    participant.drawingNumber
+  ]))), [['Alpha', 2], ['Bravo', 1]]);
+});
+
+test('participant Excel controls export and open/reset the file picker', () => {
+  const loaded = loadApp();
+  const app = loaded.BilposApp;
+  const exportButton = appendElement(loaded.document, 'button', { id: 'btn-export-excel' });
+  const importButton = appendElement(loaded.document, 'button', { id: 'btn-import-excel' });
+  const fileInput = appendElement(loaded.document, 'input', { id: 'import-excel-input' });
+  const selectedFile = { name: 'roster.xlsx' };
+  let exportCalls = 0;
+  let importFile = null;
+  let pickerCalls = 0;
+  fileInput.files = [selectedFile];
+  fileInput.value = 'C:\\fakepath\\roster.xlsx';
+  fileInput.click = function () { pickerCalls += 1; };
+  app.exportExcel = function () { exportCalls += 1; };
+  app.importExcel = function (file) { importFile = file; };
+  app.wireEvents();
+
+  exportButton.dispatchEvent('click', {});
+  importButton.dispatchEvent('click', {});
+  fileInput.dispatchEvent('change', { target: fileInput });
+
+  assert.equal(exportCalls, 1);
+  assert.equal(pickerCalls, 1);
+  assert.equal(importFile, selectedFile);
+  assert.equal(fileInput.value, '');
+});
+
+test('Excel export builds a two-sheet workbook and writes an RNR filename', () => {
+  const workbook = { SheetNames: ['Peserta', 'Bracket'], Sheets: {} };
+  const exportCalls = [];
+  const loaded = loadApp({
+    participants: [{ id: 'row-1', name: 'Alpha', drawingNumber: 1 }],
+    tournament: { size: 8, venue: 'Rack N Roll' },
+    bracket: { bracket: { size: 8, rounds: [] }, liveMatchIds: [] },
+    excelTransfer: {
+      buildWorkbook: function (XLSX, participants, tournament, bracket) {
+        exportCalls.push({ XLSX: XLSX, participants: participants, tournament: tournament, bracket: bracket });
+        return workbook;
+      }
+    },
+    xlsx: {
+      writeFile: function (writtenWorkbook, filename) {
+        exportCalls.push({ writtenWorkbook: writtenWorkbook, filename: filename });
+      }
+    }
+  });
+
+  loaded.BilposApp.exportExcel();
+
+  assert.equal(exportCalls[0].participants[0].drawingNumber, 1);
+  assert.equal(exportCalls[0].tournament.size, 8);
+  assert.equal(exportCalls[0].bracket.bracket.size, 8);
+  assert.equal(exportCalls[1].writtenWorkbook, workbook);
+  assert.match(exportCalls[1].filename, /^rack-n-roll-peserta-\d{4}-\d{2}-\d{2}\.xlsx$/);
+  assert.equal(loaded.toastCalls[0].type, 'success');
+});
+
+test('Excel export generates a bracket when there is no saved bracket', () => {
+  const participants = [{ id: 'row-1', name: 'Alpha', drawingNumber: 1 }];
+  let generatedBracket = null;
+  let exportedBracket = null;
+  const loaded = loadApp({
+    participants: participants,
+    tournament: { size: 8, venue: 'Rack N Roll' },
+    excelTransfer: {
+      buildWorkbook: function (XLSX, roster, tournament, bracket) {
+        exportedBracket = bracket;
+        return {};
+      }
+    },
+    xlsx: { writeFile: function () {} },
+    generateBracket: function (size, roster) {
+      generatedBracket = { size: size, roster: roster };
+      return { size: size, rounds: [[{ id: 'r0m0' }]] };
+    }
+  });
+
+  loaded.BilposApp.exportExcel();
+
+  assert.equal(generatedBracket.size, 8);
+  assert.equal(generatedBracket.roster, loaded.getParticipants());
+  assert.equal(exportedBracket.bracket.size, 8);
+  assert.deepEqual(Array.from(exportedBracket.liveMatchIds), []);
+  assert.equal(loaded.toastCalls[0].type, 'success');
+});
+
+test('Excel import validates first then replaces roster, tournament, and saved bracket', () => {
+  const inputFile = { name: 'rnr.xlsx' };
+  const importedParticipants = [{ id: 'row-1', name: 'Alpha', drawingNumber: 1, status: 'cash' }];
+  const importedBracket = { bracket: { size: 8, rounds: [] }, liveMatchIds: ['r0m0'] };
+  const order = [];
+  const loaded = loadApp({
+    tournament: { size: 16, venue: 'Rack N Roll', fee: 100 },
+    excelTransfer: {
+      parseWorkbook: function (XLSX, workbook, currentTournament) {
+        order.push('parse');
+        assert.equal(currentTournament.venue, 'Rack N Roll');
+        return {
+          participants: importedParticipants,
+          tournament: { size: 8, venue: currentTournament.venue, fee: currentTournament.fee },
+          bracket: importedBracket
+        };
+      }
+    },
+    xlsx: { read: function () { return { SheetNames: ['Peserta', 'Bracket'], Sheets: {} }; } },
+    FileReader: function () {
+      this.readAsArrayBuffer = function () {
+        this.onload({ target: { result: 'workbook-bytes' } });
+      };
+    }
+  });
+  const app = loaded.BilposApp;
+  app.tournament = { size: 16, venue: 'Rack N Roll', fee: 100 };
+  app.renderParticipantTable = function () {};
+  app.renderStats = function () {};
+  const replaceTransfer = loaded.window.BilposStorage.replaceTournamentTransfer;
+  loaded.window.BilposStorage.replaceTournamentTransfer = function (tournament, participants, bracket) {
+    order.push('write');
+    return replaceTransfer(tournament, participants, bracket);
+  };
+
+  app.importExcel(inputFile);
+
+  assert.deepEqual(order, ['parse', 'write']);
+  assert.equal(loaded.getTransferCalls().length, 1);
+  assert.deepEqual(JSON.parse(JSON.stringify(loaded.getTransferCalls()[0].participants)), importedParticipants);
+  assert.deepEqual(JSON.parse(JSON.stringify(loaded.getTransferCalls()[0].bracket)), importedBracket);
+  assert.equal(loaded.getTournament().venue, 'Rack N Roll');
+  assert.equal(loaded.getTournament().size, 8);
+  assert.ok(loaded.dispatchedEvents.includes('bilpos:participants-updated'));
+  assert.ok(loaded.dispatchedEvents.includes('bilpos:bracket-activated'));
+  assert.equal(loaded.toastCalls[0].type, 'success');
+});
+
+test('invalid Excel import shows an error and does not write storage', () => {
+  const loaded = loadApp({
+    excelTransfer: {
+      parseWorkbook: function () {
+        throw new Error('Kolom Peserta tidak lengkap');
+      }
+    },
+    xlsx: { read: function () { return { SheetNames: ['Peserta'], Sheets: {} }; } },
+    FileReader: function () {
+      this.readAsArrayBuffer = function () {
+        this.onload({ target: { result: 'invalid' } });
+      };
+    }
+  });
+
+  loaded.BilposApp.importExcel({ name: 'invalid.xlsx' });
+
+  assert.equal(loaded.getTransferCalls().length, 0);
+  assert.equal(loaded.toastCalls[0].type, 'danger');
+  assert.match(loaded.toastCalls[0].message, /Kolom Peserta tidak lengkap/);
+});
+
+test('Excel import without a Bracket sheet generates a fresh scoreless bracket', () => {
+  const importedParticipants = [{ id: 'row-1', name: 'Alpha', drawingNumber: 1 }];
+  let generatedSize = null;
+  const loaded = loadApp({
+    excelTransfer: {
+      parseWorkbook: function () {
+        return {
+          participants: importedParticipants,
+          tournament: { size: 8, venue: 'Rack N Roll' },
+          bracket: null
+        };
+      }
+    },
+    xlsx: { read: function () { return { SheetNames: ['Peserta'], Sheets: {} }; } },
+    FileReader: function () {
+      this.readAsArrayBuffer = function () {
+        this.onload({ target: { result: 'workbook-bytes' } });
+      };
+    },
+    generateBracket: function (size) {
+      generatedSize = size;
+      return { size: size, rounds: [] };
+    }
+  });
+
+  loaded.BilposApp.importExcel({ name: 'roster.xlsx' });
+
+  assert.equal(generatedSize, 8);
+  assert.deepEqual(JSON.parse(JSON.stringify(loaded.getTransferCalls()[0].bracket)), {
+    bracket: { size: 8, rounds: [] },
+    liveMatchIds: []
+  });
+  assert.equal(loaded.toastCalls[0].type, 'success');
+});
+
+test('Excel actions report an unavailable workbook library', () => {
+  const loaded = loadApp({ xlsx: undefined });
+
+  loaded.BilposApp.exportExcel();
+  loaded.BilposApp.importExcel({ name: 'roster.xlsx' });
+
+  assert.equal(loaded.toastCalls.length, 2);
+  assert.ok(loaded.toastCalls.every((toast) => toast.type === 'danger'));
+  assert.equal(loaded.getTransferCalls().length, 0);
+});
+
+test('Excel import reports a storage replacement failure without success notification', () => {
+  const loaded = loadApp({
+    excelTransfer: {
+      parseWorkbook: function () {
+        return {
+          participants: [],
+          tournament: { size: 8 },
+          bracket: null
+        };
+      }
+    },
+    xlsx: { read: function () { return { SheetNames: ['Peserta'], Sheets: {} }; } },
+    FileReader: function () {
+      this.readAsArrayBuffer = function () {
+        this.onload({ target: { result: 'workbook-bytes' } });
+      };
+    }
+  });
+  loaded.window.BilposStorage.replaceTournamentTransfer = function () {
+    throw new Error('storage full');
+  };
+
+  loaded.BilposApp.importExcel({ name: 'roster.xlsx' });
+
+  assert.equal(loaded.toastCalls.length, 1);
+  assert.equal(loaded.toastCalls[0].type, 'danger');
+  assert.match(loaded.toastCalls[0].message, /storage full/);
 });

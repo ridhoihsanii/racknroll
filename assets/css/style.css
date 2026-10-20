@@ -775,6 +775,7 @@ button {
   font-weight: 600;
 }
 .participant-table .hc-select { min-width: 140px; }
+.participant-table .bracket-input { width: 76px; min-width: 76px; text-align: center; }
 .participant-table .btn-delete-row { margin-left: 8px; }
 
 
