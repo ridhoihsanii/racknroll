@@ -454,6 +454,45 @@
     });
   }
 
+  function synchronizeAdvancement(bracketData) {
+    if (!bracketData || !bracketData.bracket || !bracketData.bracket.rounds.length) return;
+
+    var rounds = bracketData.bracket.rounds;
+    var liveMatchIds = bracketData.liveMatchIds || [];
+
+    rounds.slice(0, -1).forEach(function (round, roundIndex) {
+      round.forEach(function (match, matchIndex) {
+        var nextMatch = rounds[roundIndex + 1][Math.floor(matchIndex / 2)];
+        var side = matchIndex % 2 === 0 ? 'p1' : 'p2';
+        var winner = match.winner;
+        var current = nextMatch[side];
+        var isDoubleBye = !winner && match.status === 'done' &&
+          match.p1 && match.p1.name === 'BYE' &&
+          match.p2 && match.p2.name === 'BYE';
+        var expected = isDoubleBye
+          ? { id: null, name: 'BYE', hc: '', drawingNumber: null }
+          : winner;
+        var same = current === expected ||
+          (current && expected &&
+            String(current.id) === String(expected.id) &&
+            current.name === expected.name &&
+            String(current.hc || '') === String(expected.hc || '') &&
+            Number(current.drawingNumber) === Number(expected.drawingNumber)) ||
+          (!current && !expected);
+
+        if (same) return;
+        if (nextMatch.status !== 'pending' || nextMatch.winner ||
+            !isBlank(nextMatch.score1) || !isBlank(nextMatch.score2) ||
+            liveMatchIds.indexOf(nextMatch.id) !== -1) {
+          throw new Error('Peserta di ronde ' + (roundIndex + 2) + ' match ' +
+            (Math.floor(matchIndex / 2) + 1) +
+            ' tidak sesuai dengan hasil ronde sebelumnya');
+        }
+        nextMatch[side] = expected;
+      });
+    });
+  }
+
   function parseWorkbook(XLSX, workbook, currentTournament) {
     if (!XLSX || !XLSX.utils || typeof XLSX.utils.sheet_to_json !== 'function') {
       throw new Error('Library Excel tidak tersedia');
@@ -486,6 +525,7 @@
     var bracket = parseBracket(XLSX, workbook, size);
     fillPendingByeSlots(bracket, participants);
     linkBracketParticipants(bracket, participants);
+    synchronizeAdvancement(bracket);
     return {
       participants: participants,
       tournament: tournament,

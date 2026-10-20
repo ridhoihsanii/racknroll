@@ -376,6 +376,49 @@ test('parseWorkbook fills a pending BYE slot from roster while preserving existi
   assert.equal(result.bracket.bracket.rounds[0][1].p2.name, 'BYE');
 });
 
+test('parseWorkbook advances saved winners into pending next-round matches', () => {
+  const transfer = loadExcelTransfer();
+  const result = transfer.parseWorkbook(
+    createXlsxStub({}),
+    createWorkbook([
+      createParticipantRow('TF', 'Alpha', '', 1, 4),
+      createParticipantRow('TF', 'Bravo', '', 2, 4),
+      createParticipantRow('TF', 'Charlie', '', 3, 4)
+    ], [
+      {
+        'Ronde': 0, 'Match': 0, 'ID Match': 'r0m0',
+        'P1 ID': 'alpha-id', 'P1 Nama': 'Alpha', 'P1 HC': '', 'P1 Bracket': 1, 'P1 BYE': false, 'Skor P1': 3,
+        'P2 ID': 'bravo-id', 'P2 Nama': 'Bravo', 'P2 HC': '', 'P2 Bracket': 2, 'P2 BYE': false, 'Skor P2': 1,
+        'Pemenang ID': 'alpha-id', 'Pemenang Nama': 'Alpha', 'Pemenang HC': '', 'Pemenang Bracket': 1,
+        'Pemenang BYE': false, 'Status': 'done', 'LIVE': false
+      },
+      {
+        'Ronde': 0, 'Match': 1, 'ID Match': 'r0m1',
+        'P1 ID': 'charlie-id', 'P1 Nama': 'Charlie', 'P1 HC': '', 'P1 Bracket': 3, 'P1 BYE': false, 'Skor P1': '',
+        'P2 ID': '', 'P2 Nama': 'BYE', 'P2 HC': '', 'P2 Bracket': 4, 'P2 BYE': true, 'Skor P2': '',
+        'Pemenang ID': 'charlie-id', 'Pemenang Nama': 'Charlie', 'Pemenang HC': '', 'Pemenang Bracket': 3,
+        'Pemenang BYE': false, 'Status': 'done', 'LIVE': false
+      },
+      {
+        'Ronde': 1, 'Match': 0, 'ID Match': 'r1m0',
+        'P1 ID': 'bravo-id', 'P1 Nama': 'Bravo', 'P1 HC': '', 'P1 Bracket': 2, 'P1 BYE': false, 'Skor P1': '',
+        'P2 ID': 'charlie-id', 'P2 Nama': 'Charlie', 'P2 HC': '', 'P2 Bracket': 3, 'P2 BYE': false, 'Skor P2': '',
+        'Pemenang ID': '', 'Pemenang Nama': '', 'Pemenang HC': '', 'Pemenang Bracket': '',
+        'Pemenang BYE': false, 'Status': 'pending', 'LIVE': false
+      }
+    ]),
+    { size: 4 }
+  );
+  const firstRoundMatch = result.bracket.bracket.rounds[0][0];
+  const finalMatch = result.bracket.bracket.rounds[1][0];
+
+  assert.equal(firstRoundMatch.score1, 3);
+  assert.equal(firstRoundMatch.winner.id, 'row-1');
+  assert.equal(finalMatch.p1.id, 'row-1');
+  assert.equal(finalMatch.p1.name, 'Alpha');
+  assert.equal(finalMatch.p2.id, 'row-3');
+});
+
 test('buildWorkbook and parseWorkbook round-trip multiple rounds and LIVE matches', () => {
   const transfer = loadExcelTransfer();
   const XLSX = createXlsxStub({});
