@@ -196,10 +196,10 @@ test('parseWorkbook replaces roster values and retains current tournament settin
   );
 
   assert.deepEqual(JSON.parse(JSON.stringify(result.participants.map(function (p) {
-    return [p.id, p.name, p.hc, p.drawingNumber, p.status];
+    return [p.id, p.slot, p.name, p.hc, p.drawingNumber, p.status];
   }))), [
-    ['row-1', 'Alpha', 'HC 3B', 1, 'cash'],
-    ['row-2', 'Bravo', 'HC 3N', null, 'tf']
+    ['row-1', 1, 'Alpha', 'HC 3B', 1, 'cash'],
+    ['row-2', 2, 'Bravo', 'HC 3N', null, 'tf']
   ]);
   assert.equal(result.tournament.size, 8);
   assert.equal(result.tournament.venue, 'Rack N Roll');
@@ -332,6 +332,48 @@ test('parseWorkbook restores bracket rows, results, and LIVE state', () => {
   assert.equal(match.winner.id, 'row-1');
   assert.equal(match.status, 'done');
   assert.deepEqual(JSON.parse(JSON.stringify(result.bracket.liveMatchIds)), ['r0m0']);
+});
+
+test('parseWorkbook fills a pending BYE slot from roster while preserving existing results', () => {
+  const transfer = loadExcelTransfer();
+  const bracketRows = [
+    {
+      'Ronde': 0, 'Match': 0, 'ID Match': 'r0m0',
+      'P1 ID': 'row-1', 'P1 Nama': 'Alpha', 'P1 HC': '', 'P1 Bracket': 1, 'P1 BYE': false, 'Skor P1': 3,
+      'P2 ID': 'row-2', 'P2 Nama': 'Bravo', 'P2 HC': '', 'P2 Bracket': 2, 'P2 BYE': false, 'Skor P2': 1,
+      'Pemenang ID': 'row-1', 'Pemenang Nama': 'Alpha', 'Pemenang HC': '', 'Pemenang Bracket': 1,
+      'Pemenang BYE': false, 'Status': 'done', 'LIVE': false
+    },
+    {
+      'Ronde': 0, 'Match': 1, 'ID Match': 'r0m1',
+      'P1 ID': '', 'P1 Nama': 'BYE', 'P1 HC': '', 'P1 Bracket': 3, 'P1 BYE': true, 'Skor P1': '',
+      'P2 ID': '', 'P2 Nama': 'BYE', 'P2 HC': '', 'P2 Bracket': 4, 'P2 BYE': true, 'Skor P2': '',
+      'Pemenang ID': '', 'Pemenang Nama': '', 'Pemenang HC': '', 'Pemenang Bracket': '',
+      'Pemenang BYE': false, 'Status': 'pending', 'LIVE': false
+    },
+    {
+      'Ronde': 1, 'Match': 0, 'ID Match': 'r1m0',
+      'P1 ID': '', 'P1 Nama': '', 'P1 HC': '', 'P1 Bracket': '', 'P1 BYE': false, 'Skor P1': '',
+      'P2 ID': '', 'P2 Nama': '', 'P2 HC': '', 'P2 Bracket': '', 'P2 BYE': false, 'Skor P2': '',
+      'Pemenang ID': '', 'Pemenang Nama': '', 'Pemenang HC': '', 'Pemenang Bracket': '',
+      'Pemenang BYE': false, 'Status': 'pending', 'LIVE': false
+    }
+  ];
+  const result = transfer.parseWorkbook(
+    createXlsxStub({}),
+    createWorkbook([
+      createParticipantRow('TF', 'Charlie', '', 3, 4),
+      createParticipantRow('TF', 'Bravo', '', 2, 4),
+      createParticipantRow('TF', 'Alpha', '', 1, 4)
+    ], bracketRows),
+    { size: 4 }
+  );
+
+  assert.equal(result.bracket.bracket.rounds[0][0].score1, 3);
+  assert.equal(result.bracket.bracket.rounds[0][0].winner.id, 'row-3');
+  assert.equal(result.bracket.bracket.rounds[0][1].p1.id, 'row-1');
+  assert.equal(result.bracket.bracket.rounds[0][1].p1.name, 'Charlie');
+  assert.equal(result.bracket.bracket.rounds[0][1].p2.name, 'BYE');
 });
 
 test('buildWorkbook and parseWorkbook round-trip multiple rounds and LIVE matches', () => {

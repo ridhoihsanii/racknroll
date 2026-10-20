@@ -410,6 +410,50 @@
     });
   }
 
+  function fillPendingByeSlots(bracketData, participants) {
+    if (!bracketData || !bracketData.bracket || !bracketData.bracket.rounds.length) return;
+
+    var firstRound = bracketData.bracket.rounds[0];
+    var liveMatchIds = bracketData.liveMatchIds || [];
+
+    participants.forEach(function (participant) {
+      var slot = Number(participant && participant.drawingNumber);
+      if (!isFinite(slot) || slot < 1) return;
+
+      var matchIndex = Math.floor((slot - 1) / 2);
+      var side = slot % 2 === 1 ? 'p1' : 'p2';
+      var match = firstRound[matchIndex];
+      var existing = match && match[side];
+
+      if (!existing || existing.name !== 'BYE' ||
+          Number(existing.drawingNumber) !== slot) return;
+
+      if (match.status !== 'pending' || match.winner ||
+          !isBlank(match.score1) || !isBlank(match.score2) ||
+          liveMatchIds.indexOf(match.id) !== -1) {
+        throw new Error('Peserta slot ' + slot + ' tidak sesuai dengan Bracket yang sudah memiliki progres');
+      }
+
+      var sourceId = 'transfer-slot-' + slot;
+      while (bracketData.bracket.rounds.some(function (round) {
+        return round.some(function (roundMatch) {
+          return [roundMatch.p1, roundMatch.p2, roundMatch.winner].some(function (sideParticipant) {
+            return sideParticipant && sideParticipant.id != null &&
+              String(sideParticipant.id) === sourceId;
+          });
+        });
+      })) {
+        sourceId += '_';
+      }
+      match[side] = {
+        id: sourceId,
+        name: participant.name,
+        hc: participant.hc,
+        drawingNumber: participant.drawingNumber
+      };
+    });
+  }
+
   function parseWorkbook(XLSX, workbook, currentTournament) {
     if (!XLSX || !XLSX.utils || typeof XLSX.utils.sheet_to_json !== 'function') {
       throw new Error('Library Excel tidak tersedia');
@@ -429,6 +473,7 @@
       drawingNumber = validateDrawingNumber(row['Bracket'], size, participants, null);
       participant = {
         id: 'row-' + (participants.length + 1),
+        slot: participants.length + 1,
         name: String(row['Nama'] == null ? '' : row['Nama']).trim(),
         hc: String(row['HC'] == null ? '' : row['HC']).trim(),
         status: normalizePayment(row['Pembayaran']),
@@ -439,6 +484,7 @@
 
     var tournament = Object.assign({}, currentTournament || {}, { size: size });
     var bracket = parseBracket(XLSX, workbook, size);
+    fillPendingByeSlots(bracket, participants);
     linkBracketParticipants(bracket, participants);
     return {
       participants: participants,

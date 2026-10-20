@@ -300,6 +300,7 @@
         var hcValue = getKnownHcValue(participant);
         var hcCustom = getCustomHcValue(participant);
         var status = participant && participant.status ? participant.status : '';
+        var participantId = participant && participant.id != null ? String(participant.id) : '';
         var rowClass = status === 'cash' ? 'row-paid-cash' : (status === 'tf' ? 'row-paid-tf' : '');
         var cashActive = status === 'cash' ? 'active' : '';
         var tfActive = status === 'tf' ? 'active' : '';
@@ -337,7 +338,7 @@
               '<input type="number" class="table-input bracket-input" data-row="' + i + '" min="1" max="' + size + '" placeholder="-" value="' + escapeHtml(participant && participant.drawingNumber != null ? participant.drawingNumber : '') + '"/>' +
             '</td>' +
             '<td>' +
-              '<button class="btn-delete-row btn-export" data-row="' + i + '"><i class="fas fa-trash"></i></button>' +
+              '<button class="btn-delete-row btn-export" data-row="' + i + '" data-participant-id="' + escapeHtml(participantId) + '"><i class="fas fa-trash"></i></button>' +
             '</td>' +
           '</tr>'
         );
@@ -498,14 +499,18 @@
           var del = (e.target && typeof e.target.closest === 'function') ? e.target.closest('.btn-delete-row') : null;
           if (del) {
             var rowIndex = parseInt(del.dataset.row, 10);
+            var participantId = del.dataset.participantId || 'row-' + rowIndex;
             if (confirm('Hapus peserta ini?')) {
-              clearParticipantFromBracket('row-' + rowIndex);
-              BilposStorage.deleteParticipant('row-' + rowIndex);
-              self.participants = BilposStorage.loadParticipants();
-              self.renderParticipantTable();
-              self.renderStats();
-              dispatchParticipantsUpdated();
-              if (typeof BilposUI !== 'undefined') BilposUI.showToast('Peserta dihapus', 'success');
+              if (BilposStorage.deleteParticipant(participantId)) {
+                clearParticipantFromBracket(participantId);
+                self.participants = BilposStorage.loadParticipants();
+                self.renderParticipantTable();
+                self.renderStats();
+                dispatchParticipantsUpdated();
+                if (typeof BilposUI !== 'undefined') BilposUI.showToast('Peserta dihapus', 'success');
+              } else if (typeof BilposUI !== 'undefined') {
+                BilposUI.showToast('Peserta tidak ditemukan; data tidak diubah', 'danger');
+              }
             }
           }
         });

@@ -34,7 +34,7 @@ Changing a valid assignment updates the first round from participant `drawingNum
 
 Import replaces the participant roster. Parse and validate all required workbook data before writing storage so malformed files or invalid bracket slot assignments cannot partially overwrite the current roster. Normalize payment states to existing Rack N Roll values and map `HC` as the participant handicap value.
 
-When a `Bracket` sheet is present, reconstruct the full saved bracket from its rows, preserving later-round participants and results. If the sheet is absent, create a fresh bracket from roster slot assignments without scores or winners. Update the tournament size from the workbook while retaining other tournament settings. Refresh the participant table and bracket view after a successful import.
+When a `Bracket` sheet is present, reconstruct the full saved bracket from its rows, preserving later-round participants and results. A roster participant may replace a matching first-round BYE only when that match is still pending and has no score, winner, or LIVE state; this reconciles roster edits without discarding played results. If the sheet is absent, create a fresh bracket from roster slot assignments without scores or winners. Update the tournament size from the workbook while retaining other tournament settings. Refresh the participant table and bracket view after a successful import.
 
 ## Error Handling and Testing
 

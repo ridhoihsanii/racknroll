@@ -217,6 +217,7 @@ function loadApp(options) {
   const savedParticipantsCalls = [];
   const savedBracketCalls = [];
   const transferCalls = [];
+  const deletedParticipantIds = [];
   const dispatchedEvents = [];
   let participants = config.participants ? config.participants.slice() : [];
   let tournament = config.tournament || { size: 2, venue: '', status: '' };
@@ -263,6 +264,12 @@ function loadApp(options) {
       saveBracket: function (bracket) {
         config.bracket = bracket;
         savedBracketCalls.push(bracket);
+      },
+      deleteParticipant: function (id) {
+        deletedParticipantIds.push(id);
+        const before = participants.length;
+        participants = participants.filter((participant) => participant && participant.id !== id);
+        return participants.length < before;
       }
     },
     confirm: config.confirm || function () { return true; },
@@ -346,11 +353,39 @@ function loadApp(options) {
     getTransferCalls: function () {
       return transferCalls;
     },
+    getDeletedParticipantIds: function () {
+      return deletedParticipantIds;
+    },
     getTournament: function () {
       return tournament;
     }
   };
 }
+
+test('deleting the first displayed imported participant uses its stable id', () => {
+  const loaded = loadApp({
+    participants: [{ id: 'row-2', name: 'Intan', drawingNumber: 2 }]
+  });
+  const tbody = appendElement(loaded.document, 'tbody', { id: 'participant-tbody' });
+  const deleteButton = appendElement(loaded.document, 'button', {
+    className: 'btn-delete-row',
+    dataset: { row: 1, participantId: 'row-2' }
+  });
+  loaded.BilposApp.tournament = { size: 2 };
+  loaded.BilposApp.participants = loaded.getParticipants();
+  loaded.BilposApp.wireEvents();
+
+  tbody.dispatchEvent('click', {
+    target: {
+      closest: function (selector) {
+        return selector === '.btn-delete-row' ? deleteButton : null;
+      }
+    }
+  });
+
+  assert.deepEqual(Array.from(loaded.getDeletedParticipantIds()), ['row-2']);
+  assert.deepEqual(Array.from(loaded.getParticipants()), []);
+});
 
 test('draw all persists assigned drawing numbers to storage', () => {
   const participants = [

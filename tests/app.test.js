@@ -277,7 +277,7 @@ test('renderParticipantTable displays a participant drawing-number input after H
   loaded.document.body.appendChild(tbody);
   app.tournament = { size: 2 };
   app.participants = [{
-    id: 'row-1',
+    id: 'row-2',
     slot: 1,
     drawingNumber: 2,
     name: 'Alpha',
@@ -294,6 +294,7 @@ test('renderParticipantTable displays a participant drawing-number input after H
   assert.ok(bracketPosition > hcPosition);
   assert.ok(deletePosition > bracketPosition);
   assert.match(tbody.innerHTML, /class="table-input bracket-input"[^>]*value="2"/);
+  assert.match(tbody.innerHTML, /data-participant-id="row-2"/);
 });
 
 test('saveParticipantRow preserves an assigned drawing number when participant details change', () => {
