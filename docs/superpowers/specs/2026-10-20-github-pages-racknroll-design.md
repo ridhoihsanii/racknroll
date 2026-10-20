@@ -8,27 +8,26 @@ Publish the existing billiards tournament project at
 ## Chosen approach
 
 Rename the existing public repository from `bilpos-project` to `racknroll`,
-preserving its history and repository settings. Configure GitHub Pages to use
-GitHub Actions, with a workflow that deploys the repository's static site from
-the `main` branch. Keep the existing site files and relative asset references;
-no application rewrite or additional build step is required for the static
-deployment.
+preserving its history and repository settings. Keep the existing GitHub Pages
+branch deployment from `main` and `/`, which was already configured on the
+repository. Keep the existing site files and relative asset references; no
+application rewrite or additional build step is required.
 
 ## Deployment behavior
 
-The workflow runs on pushes to `main` and can also be started manually. It
-checks out the repository, uploads its static site contents as a Pages
-artifact, and deploys that artifact. The artifact contains `index.html`,
-`preview.html`, and `assets/`, staged separately so unrelated server, database,
-test, and dependency files are not published. It also includes `.nojekyll` so
-GitHub Pages serves the static assets directly. GitHub Actions requires the
-Pages build and deployment permissions, and Pages must be configured to use
-GitHub Actions. A successful deployment makes the site available at the
-requested project URL.
+GitHub Pages publishes the repository root from `main`; pushing the branding
+update to that branch triggers the Pages build. The existing public repository
+already exposes its source files, so the branch deployment does not change
+their visibility.
 
 The pending `index.html` rebranding requested immediately before this
 deployment is part of the site content to publish and must be included in the
 release commit.
+
+GitHub Actions was initially considered, but the first workflow run could not
+start because GitHub reported an account billing lock. The Actions workflow
+was removed and the repository's pre-existing branch-based Pages configuration
+was restored instead.
 
 ## Alternatives considered
 
@@ -40,7 +39,7 @@ release commit.
 
 ## Scope and validation
 
-Publishing changes the repository name and deployment configuration, and
+Publishing changes the repository name, keeps Pages on `main`/root, and
 includes the already-requested `index.html` branding update in the release.
-Validate the workflow configuration and confirm the deployed Pages URL
-responds after the Actions deployment completes.
+Validate the Pages build state and confirm the deployed URL responds with the
+requested branding.
