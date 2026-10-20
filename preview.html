@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <!-- Allow pinch-to-zoom on mobile -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
-  <title>Bracket Preview — BILPOS Tournament</title>
+  <title>Rack N Roll Bagan Tournament — Bracket Preview</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
@@ -363,7 +363,7 @@
   <div class="preview-brand">
     <span>🏆</span>
     <div>
-      <div id="preview-title">BILPOS Tournament</div>
+      <div id="preview-title">Rack N Roll Bagan Tournament</div>
       <div class="sub">Bracket Preview</div>
     </div>
   </div>
@@ -793,7 +793,7 @@ function initQR() {
   /* ── Helper: terapkan data bracket ke halaman ── */
   function applyPayload(data) {
     if (!data) return;
-    var title = (data.tournament && (data.tournament.venue || data.tournament.name)) || 'BILPOS Tournament';
+    var title = 'Rack N Roll Bagan Tournament';
     document.getElementById('preview-title').textContent = title;
     document.title = title + ' — Bracket Preview';
     var root = document.getElementById('bracket-root');

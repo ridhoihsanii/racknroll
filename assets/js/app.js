@@ -34,7 +34,7 @@
   }
 
   function getKnownHcValue(participant) {
-    var hcValues = ['HC 3B', 'HC 3N', 'HC 3A', 'HC 3+', 'custom'];
+    var hcValues = ['HC Pemula', 'HC 3SB', 'HC 3B', 'HC 3N', 'HC 3A', 'custom'];
     var hc = participant && participant.hc != null ? String(participant.hc) : '';
     var hcCustom = participant && participant.hcCustom != null ? String(participant.hcCustom) : '';
     if (hc === 'custom' || hcCustom) {
@@ -53,7 +53,7 @@
     if (participant.hcCustom != null && String(participant.hcCustom).trim()) {
       return String(participant.hcCustom).trim();
     }
-    if (participant.hc && ['HC 3B', 'HC 3N', 'HC 3A', 'HC 3+', 'custom'].indexOf(String(participant.hc)) === -1) {
+    if (participant.hc && ['HC Pemula', 'HC 3SB', 'HC 3B', 'HC 3N', 'HC 3A', 'custom'].indexOf(String(participant.hc)) === -1) {
       return String(participant.hc);
     }
     return '';
@@ -310,11 +310,12 @@
             '<td>' +
               '<select class="table-select hc-select" data-row="' + i + '">' +
                 '<option value="">— HC —</option>' +
+                '<option value="HC Pemula"' + (hcValue === 'HC Pemula' ? ' selected' : '') + '>HC Pemula</option>' +
+                '<option value="HC 3SB"' + (hcValue === 'HC 3SB' ? ' selected' : '') + '>HC 3SB</option>' +
                 '<option value="HC 3B"' + (hcValue === 'HC 3B' ? ' selected' : '') + '>HC 3B</option>' +
                 '<option value="HC 3N"' + (hcValue === 'HC 3N' ? ' selected' : '') + '>HC 3N</option>' +
                 '<option value="HC 3A"' + (hcValue === 'HC 3A' ? ' selected' : '') + '>HC 3A</option>' +
-                '<option value="HC 3+"' + (hcValue === 'HC 3+' ? ' selected' : '') + '>HC 3+</option>' +
-                '<option value="custom"' + (hcValue === 'custom' ? ' selected' : '') + '>Custom HC</option>' +
+                '<option value="custom"' + (hcValue === 'custom' ? ' selected' : '') + '>Custom</option>' +
               '</select>' +
               '<input type="text" class="hc-custom-input ' + customVisible + '" data-row="' + i + '" placeholder="Tulis HC..." value="' + escapeHtml(hcCustom) + '" maxlength="20"/>' +
             '</td>' +
