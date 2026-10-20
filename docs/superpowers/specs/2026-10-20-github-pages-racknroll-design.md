@@ -26,6 +26,10 @@ Pages build and deployment permissions, and Pages must be configured to use
 GitHub Actions. A successful deployment makes the site available at the
 requested project URL.
 
+The pending `index.html` rebranding requested immediately before this
+deployment is part of the site content to publish and must be included in the
+release commit.
+
 ## Alternatives considered
 
 - Create a new `racknroll` repository and copy the project. This produces the
@@ -36,7 +40,7 @@ requested project URL.
 
 ## Scope and validation
 
-Only the repository name and deployment configuration are changed for
-publishing. Validate the workflow configuration and confirm the deployed
-Pages URL responds after the Actions deployment completes. Existing
-application changes are not part of this deployment setup.
+Publishing changes the repository name and deployment configuration, and
+includes the already-requested `index.html` branding update in the release.
+Validate the workflow configuration and confirm the deployed Pages URL
+responds after the Actions deployment completes.
