@@ -106,12 +106,13 @@ class FakeDocument {
   }
 }
 
-function loadApp() {
+function loadApp(options) {
+  const config = options || {};
   const document = new FakeDocument();
   const window = { document: document };
   const toastCalls = [];
   let savedParticipant = null;
-  let savedBracket = null;
+  let savedBracket = config.bracket || null;
   let syncCalls = 0;
 
   const context = {
@@ -126,7 +127,7 @@ function loadApp() {
         savedParticipant = participant;
       },
       loadBracket: function () {
-        return null;
+        return savedBracket;
       },
       saveBracket: function (bracket) {
         savedBracket = bracket;
@@ -318,4 +319,87 @@ test('saveParticipantRow preserves an assigned drawing number when participant d
   app.saveParticipantRow(1);
 
   assert.equal(loaded.getSavedParticipant().drawingNumber, 4);
+});
+
+test('saveParticipantRow synchronizes name and handicap metadata across every bracket round', () => {
+  const participant = {
+    id: 'row-1',
+    slot: 1,
+    drawingNumber: 1,
+    name: 'Before',
+    hc: 'custom',
+    hcCustom: 'Old custom HC',
+    status: 'cash'
+  };
+  const loaded = loadApp({
+    bracket: {
+      bracket: {
+        rounds: [
+          [{ p1: Object.assign({}, participant), p2: null, winner: null }],
+          [{ p1: Object.assign({}, participant), p2: null, winner: Object.assign({}, participant) }]
+        ]
+      },
+      liveMatchIds: ['round-1-match-1']
+    }
+  });
+  const app = loaded.BilposApp;
+  app.participants = [participant];
+  appendRowFixture(loaded.document, 1, {
+    name: 'After',
+    hcValue: 'HC 3N',
+    status: 'cash'
+  });
+  app.renderStats = function () {};
+
+  app.saveParticipantRow(1);
+
+  const saved = loaded.getSavedBracket();
+  const bracketParticipants = saved.bracket.rounds.flatMap(function (round) {
+    return round.flatMap(function (match) {
+      return [match.p1, match.p2, match.winner].filter(Boolean);
+    });
+  });
+  assert.ok(bracketParticipants.length >= 3);
+  assert.ok(bracketParticipants.every(function (bracketParticipant) {
+    return bracketParticipant.name === 'After' &&
+      bracketParticipant.hc === 'HC 3N' &&
+      bracketParticipant.hcCustom === '';
+  }));
+  assert.deepEqual(Array.from(saved.liveMatchIds), ['round-1-match-1']);
+});
+
+test('saveParticipantRow syncs a cleared custom handicap when the preset is unchanged', () => {
+  const participant = {
+    id: 'row-1',
+    slot: 1,
+    drawingNumber: 1,
+    name: 'Player',
+    hc: 'HC 3N',
+    hcCustom: 'Old custom HC',
+    status: 'cash'
+  };
+  const loaded = loadApp({
+    bracket: {
+      bracket: {
+        rounds: [[{ p1: Object.assign({}, participant), p2: null, winner: null }]]
+      },
+      liveMatchIds: []
+    }
+  });
+  const app = loaded.BilposApp;
+  app.participants = [participant];
+  appendRowFixture(loaded.document, 1, {
+    name: 'Player',
+    hcValue: 'HC 3N',
+    hcCustom: '',
+    status: 'cash'
+  });
+  app.renderStats = function () {};
+
+  app.saveParticipantRow(1);
+
+  assert.equal(
+    loaded.getSavedBracket().bracket.rounds[0][0].p1.hcCustom,
+    ''
+  );
 });

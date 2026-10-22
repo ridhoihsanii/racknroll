@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import BracketView from './BracketView';
 import { resolveWinner } from './bracketUtils';
 
@@ -29,6 +29,41 @@ function cascadeClearWinnerMut(bracket, roundIdx, matchIdx) {
 
 function deepClone(obj) {
   return JSON.parse(JSON.stringify(obj));
+}
+
+function syncParticipantDrawingNumbers(participants, bracket) {
+  var drawingNumbers = new Map();
+  var firstRound = bracket.rounds[0] || [];
+
+  firstRound.forEach(function(match, matchIdx) {
+    [match && match.p1, match && match.p2].forEach(function(participant, slotIdx) {
+      if (!participant || participant.id == null) return;
+      var participantId = String(participant.id);
+      if (!drawingNumbers.has(participantId)) {
+        drawingNumbers.set(participantId, matchIdx * 2 + slotIdx + 1);
+      }
+    });
+  });
+
+  var changed = false;
+  var syncedParticipants = participants.map(function(participant) {
+    if (!participant || participant.id == null) return participant;
+    var drawingNumber = drawingNumbers.has(String(participant.id))
+      ? drawingNumbers.get(String(participant.id))
+      : null;
+    if (participant.drawingNumber === drawingNumber) return participant;
+    changed = true;
+    return Object.assign({}, participant, { drawingNumber: drawingNumber });
+  });
+  return changed ? syncedParticipants : participants;
+}
+
+function dispatchParticipantsUpdated() {
+  if (typeof window === 'undefined' || typeof window.dispatchEvent !== 'function') return;
+  var event = typeof CustomEvent === 'function'
+    ? new CustomEvent('bilpos:participants-updated')
+    : { type: 'bilpos:participants-updated' };
+  window.dispatchEvent(event);
 }
 
 function loadInitialState() {
@@ -68,6 +103,7 @@ function loadInitialState() {
 
 export default function BracketPage() {
   var [state, setState] = useState(loadInitialState);
+  var participantUpdatePending = useRef(false);
 
   // Re-read storage when participants/tournament storage keys change (cross-tab)
   useEffect(function() {
@@ -92,6 +128,12 @@ export default function BracketPage() {
     window.addEventListener('bilpos:participants-updated', onParticipantsUpdated);
     return function() { window.removeEventListener('bilpos:participants-updated', onParticipantsUpdated); };
   }, []);
+
+  useEffect(function() {
+    if (!participantUpdatePending.current) return;
+    participantUpdatePending.current = false;
+    dispatchParticipantsUpdated();
+  }, [state.participants]);
 
   // Re-read storage when bracket nav tab is clicked (bilpos:bracket-activated event)
   useEffect(function() {
@@ -203,8 +245,16 @@ export default function BracketPage() {
         if (window.BilposTournament) window.BilposTournament.advanceWinner(newBracket, 0, matchIdx, BYE_PARTICIPANT);
       }
 
+      var newParticipants = syncParticipantDrawingNumbers(prev.participants, newBracket);
+      if (newParticipants !== prev.participants) {
+        if (window.BilposStorage && typeof window.BilposStorage.saveParticipants === 'function') {
+          window.BilposStorage.saveParticipants(newParticipants);
+        }
+        participantUpdatePending.current = true;
+      }
+
       saveState(newBracket, prev.liveMatchIds);
-      return { bracket: newBracket, liveMatchIds: prev.liveMatchIds, participants: prev.participants };
+      return { bracket: newBracket, liveMatchIds: prev.liveMatchIds, participants: newParticipants };
     });
   }, [saveState]);
 

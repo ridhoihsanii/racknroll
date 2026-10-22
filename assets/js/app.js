@@ -129,7 +129,7 @@
     }
   }
 
-  // Update participant name/hc in every bracket match where they appear (live rename)
+  // Update participant details in every bracket match where they appear.
   function updateParticipantInBracket(participantId, updatedParticipant) {
     if (!window.BilposStorage) return;
     var saved = BilposStorage.loadBracket();
@@ -142,24 +142,27 @@
         if (match.p1 && match.p1.id != null && String(match.p1.id) === String(participantId)) {
           match.p1.name = updatedParticipant.name;
           match.p1.hc   = updatedParticipant.hc;
+          match.p1.hcCustom = updatedParticipant.hcCustom || '';
           changed = true;
         }
         if (match.p2 && match.p2.id != null && String(match.p2.id) === String(participantId)) {
           match.p2.name = updatedParticipant.name;
           match.p2.hc   = updatedParticipant.hc;
+          match.p2.hcCustom = updatedParticipant.hcCustom || '';
           changed = true;
         }
         // Also update winner field if this participant won the match
         if (match.winner && match.winner.id != null && String(match.winner.id) === String(participantId)) {
           match.winner.name = updatedParticipant.name;
           match.winner.hc   = updatedParticipant.hc;
+          match.winner.hcCustom = updatedParticipant.hcCustom || '';
           changed = true;
         }
       });
     });
 
     if (changed) {
-      BilposStorage.saveBracket({ bracket: bracket, liveMatchId: saved.liveMatchId });
+      BilposStorage.saveBracket(Object.assign({}, saved, { bracket: bracket }));
       dispatchBracketActivated();
     }
   }
@@ -383,6 +386,16 @@
 
       if (this._eventsWired) { return; }
       this._eventsWired = true;
+
+      if (typeof window.addEventListener === 'function') {
+        window.addEventListener('bilpos:participants-updated', function () {
+          if (window.BilposStorage) {
+            self.participants = BilposStorage.loadParticipants();
+          }
+          self.renderParticipantTable();
+          self.renderStats();
+        });
+      }
 
       document.querySelectorAll('.sidebar-nav-item').forEach(function (item) {
         item.addEventListener('click', function () {
@@ -902,7 +915,11 @@
       dispatchParticipantsUpdated();
 
       // If name or HC changed, update in-place inside bracket (no clearing)
-      if (existingParticipant && (name !== oldName || hc !== (existingParticipant.hc || ''))) {
+      if (existingParticipant && (
+        name !== oldName ||
+        hc !== (existingParticipant.hc || '') ||
+        participant.hcCustom !== (existingParticipant.hcCustom || '')
+      )) {
         updateParticipantInBracket('row-' + rowIndex, participant);
       }
     }

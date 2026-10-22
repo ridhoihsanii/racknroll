@@ -15,6 +15,9 @@ export default function MatchCard({
   var p2IsWin   = winnerIsReal && match.p2 && match.p2.id != null && String(winner.id) === String(match.p2.id);
   var bothScored = match.score1 !== '' && match.score1 != null
                 && match.score2 !== '' && match.score2 != null;
+  var hasAnyScore = [match.score1, match.score2].some(function(score) {
+    return score != null && String(score).trim() !== '';
+  });
   var p1IsBye   = match.p1 && match.p1.name === 'BYE';
   var p2IsBye   = match.p2 && match.p2.name === 'BYE';
   var isByeMatch = p1IsBye || p2IsBye;
@@ -28,7 +31,7 @@ export default function MatchCard({
         <button
           className={'live-btn' + (isLive ? ' active' : '')}
           onClick={function() { onToggleLive(match.id); }}
-          disabled={isByeMatch}
+          disabled={isByeMatch || hasAnyScore}
           title={isLive ? 'Nonaktifkan LIVE' : 'Tandai sebagai LIVE'}
         >
           {isLive ? '🔴 LIVE' : 'LIVE'}
