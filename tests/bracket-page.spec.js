@@ -1,5 +1,9 @@
 const { test, expect } = require('@playwright/test');
 
+test.beforeEach(async ({ page }) => {
+  await page.route('https://**/*', route => route.abort());
+});
+
 async function seedTournament(page, size, assignParticipants) {
   await page.goto('/index.html', { waitUntil: 'domcontentloaded' });
   await page.evaluate(function (setup) {
@@ -28,6 +32,7 @@ async function seedTournament(page, size, assignParticipants) {
   }, { size: size, assignParticipants: assignParticipants !== false });
   await page.reload();
   await page.locator('a[href="bracket.html"]').click();
+  await expect(page.locator('#btn-preview-bracket')).toBeVisible();
 }
 
 test('64-player bracket renders balanced left and right trees around final', async ({ page }) => {
@@ -108,6 +113,10 @@ test('PREVIEW opens the existing hash payload from the dedicated page', async ({
 
   await page.evaluate(function () {
     window.BilposFirebase = null;
+    window.LZString = {
+      compressToEncodedURIComponent: encodeURIComponent,
+      decompressFromEncodedURIComponent: decodeURIComponent
+    };
     window.__openedPreviewUrl = null;
     window.open = function (url) {
       window.__openedPreviewUrl = url;
