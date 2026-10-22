@@ -258,6 +258,7 @@ git commit -m "feat: render split bracket around center final" -m "Co-authored-b
 - `bracket.html` provides `#bracket-react-root` and `#btn-preview-bracket`, loads shared storage/tournament globals and the built bracket bundle.
 - The index navigation has a normal anchor to `bracket.html`; it no longer contains a bracket section or bracket React root.
 - PREVIEW sends `{ bracket, liveMatchIds, tournament }` through `BilposFirebase.openPreview(payload)` when Firebase is available; otherwise it opens `preview.html#<compressed-payload>` using `LZString` when loaded, matching current behavior.
+- `BracketPage` owns and renders its toolbar (including `#btn-preview-bracket`); `src/entry.jsx` supplies the `onPreview` callback so React owns the toolbar controls and their behavior.
 
 - [ ] **Step 1: Write failing navigation and shared-storage browser tests**
 
@@ -272,11 +273,11 @@ Expected: FAIL because `bracket.html` and the standalone navigation are not pres
 
 - [ ] **Step 3: Add the standalone document and update index navigation**
 
-Create `bracket.html` with viewport metadata, the existing theme and bracket CSS, a compact toolbar (`PREVIEW`, FIT, zoom-out, zoom-in), and only `#bracket-react-root` as the main content. Reuse existing match-card and participant-slot styling without redesigning their appearance. Load the same-origin `storage.js` and `tournament.js` before `assets/js/bracket.bundle.js`; load the same LZString/Firebase preview dependencies that the current page uses when available. Add an anchor from `index.html` to `bracket.html`; remove `section-bracket`, its preview button, and its bracket root from index. Remove the bracket CSS/bundle script from index if they are no longer used there.
+Create `bracket.html` with viewport metadata, the existing theme and bracket CSS, and only `#bracket-react-root` as the main content. `BracketPage` renders the toolbar with PREVIEW; Task 4 adds FIT and zoom controls to that same React-owned toolbar. Reuse existing match-card and participant-slot styling without redesigning their appearance. Load the same-origin `storage.js` and `tournament.js` before `assets/js/bracket.bundle.js`; load the same LZString/Firebase preview dependencies that the current page uses when available. Add an anchor from `index.html` to `bracket.html`; remove `section-bracket`, its preview button, and its bracket root from index. Remove the bracket CSS/bundle script from index if they are no longer used there.
 
 - [ ] **Step 4: Move preview wiring to the dedicated bracket entry point**
 
-In `src/entry.jsx`, after mounting, attach the PREVIEW handler to `#btn-preview-bracket` and preserve the existing payload and Firebase/hash fallback. In `assets/js/firebase-sync.js`, normalize both `index.html` and `bracket.html` to the site root in `getPreviewUrl()` so Firebase-backed preview links do not become nested under `/bracket.html/`. Remove the old click-preview handler from `assets/js/app.js`. Remove the obsolete in-page bracket-tab activation listener from `src/entry.jsx` and matching event listener from `BracketPage` only after confirming no other caller uses it. Update `tests/app-events.test.js` so it no longer expects a same-page bracket nav event; retain tests for participant, bracket, import, and score state changes.
+In `src/entry.jsx`, define an `onPreview` callback that preserves the existing payload and Firebase/hash fallback, then mount `<BracketPage onPreview={onPreview} />`. Render `#btn-preview-bracket` inside the React-owned toolbar in `BracketPage`; do not attach a separate DOM click listener to a React-owned control. In `assets/js/firebase-sync.js`, normalize both `index.html` and `bracket.html` to the site root in `getPreviewUrl()` so Firebase-backed preview links do not become nested under `/bracket.html/`. Remove the old click-preview handler from `assets/js/app.js`. Remove the obsolete in-page bracket-tab activation listener from `src/entry.jsx` and matching event listener from `BracketPage` only after confirming no other caller uses it. Update `tests/app-events.test.js` so it no longer expects a same-page bracket nav event; retain tests for participant, bracket, import, and score state changes.
 
 - [ ] **Step 5: Run navigation, preview, and shared-storage browser tests**
 
