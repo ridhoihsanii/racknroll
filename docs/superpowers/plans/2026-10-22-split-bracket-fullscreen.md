@@ -13,6 +13,7 @@
 - `bracket.html` is a standalone page separate from tournament setup and participant-list UI.
 - For 64 players, each side represents 32 player slots; for 128 players, each side represents 64 player slots.
 - The left tree flows toward the center; the right tree mirrors bracket flow without mirroring player text; both semifinals feed the centered final.
+- Preserve the existing bracket match-card appearance, typography, colors, badges, controls, and connector style; change only spatial arrangement, inward connector direction on the right, and page placement.
 - Names, handicaps, and scores shown in the brainstorming mockup are illustrative only; render saved data and empty-slot states, never fixed example content.
 - Tournament sizes other than 64 and 128 retain the current single-direction layout.
 - FIT displays the full bracket height without vertical page scrolling; horizontal scrolling remains available.
@@ -33,7 +34,7 @@
 | `src/components/RoundColumn.jsx` | Modify | Render round subset with global match indices and inward/outward connector direction |
 | `src/components/FinalColumn.jsx` | Create | Render the existing final match centered between the two semifinal trees |
 | `src/components/BracketPage.jsx` | Modify | Fullscreen shell, responsive FIT measurement, and zoom state |
-| `src/components/Bracket.css` | Modify | Mirrored connectors, center-final styling, viewport shell, toolbar, and scaled canvas |
+| `src/components/Bracket.css` | Modify | Add mirrored connectors, center-final positioning, viewport shell, toolbar, and scaled canvas without restyling existing bracket cards |
 | `index.html` | Modify | Link to the separate bracket page and stop mounting the bracket in the main-page section |
 | `bracket.html` | Create | Standalone page loading the shared storage globals and bracket bundle |
 | `src/entry.jsx` | Modify | Mount the bracket page and handle PREVIEW on the standalone page |
@@ -225,7 +226,7 @@ var sharedProps = {
 </div>
 ```
 
-Keep the current `rounds.map(...)` path unchanged when the helper returns `null`. In `RoundColumn`, use the local array index for top/bottom connector pairing and vertical layout, but use `matchIndices[localIdx]` for `MatchCard.matchIdx` and event callbacks. Add direction-specific connector classes so right-side arms face the center; do not apply a transform that flips text. `FinalColumn` uses the final's original indices and the same `MatchCard`, so scores, LIVE, and winner handling remain unchanged.
+Keep the current `rounds.map(...)` path unchanged when the helper returns `null`. In `RoundColumn`, use the local array index for top/bottom connector pairing and vertical layout, but use `matchIndices[localIdx]` for `MatchCard.matchIdx` and event callbacks. Add direction-specific connector classes so right-side arms face the center; do not apply a transform that flips text. `FinalColumn` uses the final's original indices and the same `MatchCard`, so scores, LIVE, and winner handling remain unchanged. In CSS, add only layout and direction rules; retain existing match-card, participant-slot, typography, color, badge, button, and connector styling.
 
 - [ ] **Step 4: Run split and legacy bracket tests**
 
@@ -270,7 +271,7 @@ Expected: FAIL because `bracket.html` and the standalone navigation are not pres
 
 - [ ] **Step 3: Add the standalone document and update index navigation**
 
-Create `bracket.html` with viewport metadata, the existing theme/typography and bracket CSS, a compact toolbar (`PREVIEW`, FIT, zoom-out, zoom-in), and only `#bracket-react-root` as the main content. Load the same-origin `storage.js` and `tournament.js` before `assets/js/bracket.bundle.js`; load the same LZString/Firebase preview dependencies that the current page uses when available. Add an anchor from `index.html` to `bracket.html`; remove `section-bracket`, its preview button, and its bracket root from index. Remove the bracket CSS/bundle script from index if they are no longer used there.
+Create `bracket.html` with viewport metadata, the existing theme and bracket CSS, a compact toolbar (`PREVIEW`, FIT, zoom-out, zoom-in), and only `#bracket-react-root` as the main content. Reuse existing match-card and participant-slot styling without redesigning their appearance. Load the same-origin `storage.js` and `tournament.js` before `assets/js/bracket.bundle.js`; load the same LZString/Firebase preview dependencies that the current page uses when available. Add an anchor from `index.html` to `bracket.html`; remove `section-bracket`, its preview button, and its bracket root from index. Remove the bracket CSS/bundle script from index if they are no longer used there.
 
 - [ ] **Step 4: Move preview wiring to the dedicated bracket entry point**
 

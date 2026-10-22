@@ -19,6 +19,7 @@ Provide a dedicated, laptop-screen-focused tournament bracket page and, for 64- 
 - This controls zoom inside the application only; it does not attempt to prevent browser-level zoom shortcuts.
 - For 64 players, each side represents 32 player slots; for 128 players, each side represents 64 player slots.
 - The left tree flows toward the center. The right tree mirrors the bracket flow, without mirroring or reversing player text. Both semifinal matches feed the centered final.
+- Preserve the existing bracket's match-card appearance, typography, colors, badges, controls, and connector style. Only the bracket's spatial arrangement, inward direction on the right side, and page placement change.
 - Names, handicaps, and scores shown in the brainstorming mockup are illustrative only. The running page displays actual saved participants, handicap values, scores, and empty-slot states; it must not include the sample names or values from the mockup as fixed content.
 - Tournament sizes other than 64 and 128 retain the existing single-direction bracket layout unless the existing UI already chooses otherwise.
 
