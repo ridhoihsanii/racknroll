@@ -411,12 +411,12 @@ Expected: both bracket-assignment tests pass.
 Run: `npx playwright test tests/bracket-page.spec.js tests/bracket-participant-sync.spec.js --reporter=line`  
 Expected: all targeted browser tests pass, including existing participant sync, score/LIVE rules, and continuous typing focus.
 
-- [ ] **Step 3: Check generated files and diff integrity**
+- [x] **Step 3: Check generated files and diff integrity**
 
 Run: `git diff --check; git status --short`  
 Expected: no whitespace errors; only the planned source, test, and generated bundle files are modified. Do not stage `.superpowers/brainstorm/` mockup artifacts.
 
-- [ ] **Step 4: Commit the validated production bundle and tests**
+- [x] **Step 4: Commit the validated production bundle and tests**
 
 ```powershell
 git add -- assets/js/bracket.bundle.js assets/js/bracket.bundle.js.map assets/js/bracket.bundle.css
@@ -426,7 +426,7 @@ git commit -m "test: verify fullscreen split bracket" -m "Co-authored-by: Copilo
 
 Stage only the test files changed by this implementation if unrelated test changes are present; do not indiscriminately commit unrelated files.
 
-- [ ] **Step 5: Push the requested branch**
+- [x] **Step 5: Push the requested branch**
 
 Run: `git push -u origin release/pemisahanBagan`  
 Expected: the branch and its commits are published to `origin`.
