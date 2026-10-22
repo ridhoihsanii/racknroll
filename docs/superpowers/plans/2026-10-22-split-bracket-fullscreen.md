@@ -39,6 +39,7 @@
 | `bracket.html` | Create | Standalone page loading the shared storage globals and bracket bundle |
 | `src/entry.jsx` | Modify | Mount the bracket page and handle PREVIEW on the standalone page |
 | `assets/js/app.js` | Modify | Remove obsolete same-page preview wiring if no remaining caller exists |
+| `assets/js/firebase-sync.js` | Modify | Keep short preview URLs rooted at the site when requested from `bracket.html` |
 | `tests/app-events.test.js` | Modify | Replace the old in-page bracket-nav event expectation with navigation-compatible coverage |
 | `tests/bracket-page.spec.js` | Create | Browser coverage for dedicated page, split display, shared storage, preview, FIT, and zoom |
 | `assets/js/bracket.bundle.js`, `.js.map`, and `bracket.bundle.css` | Generate | Production bundle and extracted stylesheet from `npm run build` |
@@ -262,7 +263,7 @@ git commit -m "feat: render split bracket around center final" -m "Co-authored-b
 
 Assert that clicking the index page's Bracket link navigates to `/bracket.html`, that the new page has the bracket root and PREVIEW button but no setup/participant section, and that editing a score updates `BilposStorage.loadBracket()` from the new page. Assert browser back returns to `/index.html`.
 
-Add a PREVIEW test that stubs `window.open`, clicks PREVIEW, and verifies the opened URL starts with `preview.html#` and decodes to the current stored bracket, LIVE IDs, and tournament settings.
+Add a PREVIEW test that verifies `BilposFirebase.getPreviewUrl('preview-test')` resolves to the site-root `preview.html?id=preview-test` when called from `bracket.html`. Also stub `window.open`, disable `window.BilposFirebase`, click PREVIEW, and verify the opened hash URL decodes to the current stored bracket, LIVE IDs, and tournament settings.
 
 - [ ] **Step 2: Run the targeted tests and confirm they fail before page integration**
 
@@ -275,7 +276,7 @@ Create `bracket.html` with viewport metadata, the existing theme and bracket CSS
 
 - [ ] **Step 4: Move preview wiring to the dedicated bracket entry point**
 
-In `src/entry.jsx`, after mounting, attach the PREVIEW handler to `#btn-preview-bracket` and preserve the existing payload and Firebase/hash fallback. Remove the old click-preview handler from `assets/js/app.js`. Remove the obsolete in-page bracket-tab activation listener from `src/entry.jsx` and matching event listener from `BracketPage` only after confirming no other caller uses it. Update `tests/app-events.test.js` so it no longer expects a same-page bracket nav event; retain tests for participant, bracket, import, and score state changes.
+In `src/entry.jsx`, after mounting, attach the PREVIEW handler to `#btn-preview-bracket` and preserve the existing payload and Firebase/hash fallback. In `assets/js/firebase-sync.js`, normalize both `index.html` and `bracket.html` to the site root in `getPreviewUrl()` so Firebase-backed preview links do not become nested under `/bracket.html/`. Remove the old click-preview handler from `assets/js/app.js`. Remove the obsolete in-page bracket-tab activation listener from `src/entry.jsx` and matching event listener from `BracketPage` only after confirming no other caller uses it. Update `tests/app-events.test.js` so it no longer expects a same-page bracket nav event; retain tests for participant, bracket, import, and score state changes.
 
 - [ ] **Step 5: Run navigation, preview, and shared-storage browser tests**
 
@@ -288,7 +289,7 @@ Expected: the size-update event and both bracket-assignment tests pass; the remo
 - [ ] **Step 6: Commit the standalone page integration**
 
 ```powershell
-git add -- index.html bracket.html src/entry.jsx src/components/BracketPage.jsx assets/js/app.js tests/app-events.test.js tests/bracket-page.spec.js
+git add -- index.html bracket.html src/entry.jsx src/components/BracketPage.jsx assets/js/app.js assets/js/firebase-sync.js tests/app-events.test.js tests/bracket-page.spec.js
 git commit -m "feat: move tournament bracket to standalone page" -m "Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
 ```
 
