@@ -140,3 +140,34 @@ test('LIVE is disabled while any score is present and enabled only when both are
   await scores.nth(1).fill('');
   await expect(liveButton).toBeEnabled();
 });
+
+test('typing a participant name continuously keeps the input focused', async ({ page }) => {
+  await page.goto('/index.html');
+  await page.evaluate(function () {
+    var participants = [];
+    for (var i = 1; i <= 16; i += 1) {
+      participants.push({
+        id: 'row-' + i,
+        slot: i,
+        drawingNumber: null,
+        name: '',
+        hc: '',
+        hcCustom: '',
+        status: ''
+      });
+    }
+    localStorage.setItem('bilpos_tournament', JSON.stringify({ size: 16 }));
+    localStorage.setItem('bilpos_participants', JSON.stringify(participants));
+    window.BilposStorage.saveBracket({
+      bracket: window.BilposTournament.generateBracket(16, []),
+      liveMatchIds: []
+    });
+  });
+  await page.reload();
+  const nameInput = page.locator('.name-input[data-row="1"]');
+  await nameInput.click();
+  await nameInput.pressSequentially('Participant Name', { delay: 200 });
+
+  await expect(page.locator('.name-input[data-row="1"]')).toHaveValue('Participant Name');
+  await expect(page.locator('.name-input[data-row="1"]')).toBeFocused();
+});

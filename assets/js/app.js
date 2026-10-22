@@ -24,11 +24,11 @@
     }
   }
 
-  function dispatchParticipantsUpdated() {
+  function dispatchParticipantsUpdated(detail) {
     if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') {
       var event = typeof CustomEvent === 'function'
-        ? new CustomEvent('bilpos:participants-updated')
-        : { type: 'bilpos:participants-updated' };
+        ? new CustomEvent('bilpos:participants-updated', { detail: detail || {} })
+        : { type: 'bilpos:participants-updated', detail: detail || {} };
       window.dispatchEvent(event);
     }
   }
@@ -388,11 +388,13 @@
       this._eventsWired = true;
 
       if (typeof window.addEventListener === 'function') {
-        window.addEventListener('bilpos:participants-updated', function () {
+        window.addEventListener('bilpos:participants-updated', function (event) {
           if (window.BilposStorage) {
             self.participants = BilposStorage.loadParticipants();
           }
-          self.renderParticipantTable();
+          if (!event.detail || event.detail.refreshParticipantTable !== false) {
+            self.renderParticipantTable();
+          }
           self.renderStats();
         });
       }
@@ -912,7 +914,7 @@
       BilposStorage.saveParticipant(participant);
       this.participants = BilposStorage.loadParticipants();
       this.renderStats();
-      dispatchParticipantsUpdated();
+      dispatchParticipantsUpdated({ refreshParticipantTable: false });
 
       // If name or HC changed, update in-place inside bracket (no clearing)
       if (existingParticipant && (
