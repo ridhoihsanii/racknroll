@@ -24,6 +24,53 @@
   -webkit-overflow-scrolling: touch;
 }
 
+.bracket-view.bracket-split-view {
+  width: max-content;
+  align-items: flex-start;
+}
+
+.bracket-tree {
+  display: flex;
+  align-items: flex-start;
+  gap: 48px;
+}
+
+.final-column {
+  position: relative;
+  flex: 0 0 260px;
+  width: 260px;
+}
+
+.final-match-area {
+  position: relative;
+  width: 260px;
+}
+
+.final-match-area .bracket-center-final {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.bracket-center-final::before,
+.bracket-center-final::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 24px;
+  height: 2px;
+  background: rgba(100, 140, 180, 0.9);
+  transform: translateY(-50%);
+}
+
+.bracket-center-final::before {
+  left: -24px;
+}
+
+.bracket-center-final::after {
+  right: -24px;
+}
+
 /* ──── Round column ────────────────────────────────────────────── */
 .round-column {
   display: flex;
@@ -76,6 +123,17 @@
   transform: translateY(-50%);
 }
 
+.match-wrapper.has-right-arm::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: -24px;
+  width: 24px;
+  height: 2px;
+  background: rgba(100, 140, 180, 0.9);
+  transform: translateY(-50%);
+}
+
 /* Right arm + vertical going DOWN (even match, non-final round) */
 .match-wrapper.connector-top::after {
   content: '';
@@ -98,6 +156,20 @@
   height: calc(var(--connector-h, 54px) + 2px);
   border-bottom: 2px solid rgba(100, 140, 180, 0.9);
   border-right: 2px solid rgba(100, 140, 180, 0.9);
+}
+
+.match-wrapper.flow-left.connector-top::after {
+  right: auto;
+  left: -24px;
+  border-right: 0;
+  border-left: 2px solid rgba(100, 140, 180, 0.9);
+}
+
+.match-wrapper.flow-left.connector-bottom::after {
+  right: auto;
+  left: -24px;
+  border-right: 0;
+  border-left: 2px solid rgba(100, 140, 180, 0.9);
 }
 
 /* ──── Match card ─────────────────────────────────────────────── */

@@ -24,25 +24,31 @@ function getMatchNumOffset(roundIdx, totalRounds) {
 
 export default function RoundColumn({
   round, roundIdx, totalRounds, participants, usedParticipantIds, roundLabel,
+  matchIndices, direction,
   liveMatchIds, onScoreChange, onSelectParticipant, onToggleLive,
 }) {
   var isFirstRound = roundIdx === 0;
   var isFinalRound = roundIdx === totalRounds - 1;
+  var flowsLeft = direction === 'inward-left';
   var connectorH   = computeConnectorHeight(roundIdx);
   var matchOffset  = getMatchNumOffset(roundIdx, totalRounds);
   var displayLabel = roundLabel || getRoundLabel(roundIdx, totalRounds);
 
   // Shared match card renderer
-  function renderMatch(match, matchIdx, wrapperStyle) {
-    var isTop        = matchIdx % 2 === 0;
-    var hasLeftArm   = !isFirstRound;
+  function renderMatch(match, localMatchIdx, wrapperStyle) {
+    var matchIdx = matchIndices ? matchIndices[localMatchIdx] : localMatchIdx;
+    var isTop        = localMatchIdx % 2 === 0;
+    var hasLeftArm   = !isFirstRound && !flowsLeft;
+    var hasRightArm  = !isFirstRound && flowsLeft;
     var connectorTop = !isFinalRound && isTop;
     var connectorBot = !isFinalRound && !isTop;
 
     var wrapperClass = 'match-wrapper'
       + (hasLeftArm   ? ' has-left-arm'      : '')
+      + (hasRightArm  ? ' has-right-arm'     : '')
       + (connectorTop ? ' connector-top'     : '')
-      + (connectorBot ? ' connector-bottom'  : '');
+      + (connectorBot ? ' connector-bottom'  : '')
+      + (flowsLeft    ? ' flow-left'         : '');
 
     return (
       <div key={match.id} className={wrapperClass} style={wrapperStyle}>
@@ -68,9 +74,9 @@ export default function RoundColumn({
     return (
       <div className="round-column">
         <div className="round-label">{displayLabel}</div>
-        {round.map(function(match, matchIdx) {
-          var margins = computeMatchMargins(0, matchIdx);
-          return renderMatch(match, matchIdx, {
+        {round.map(function(match, localMatchIdx) {
+          var margins = computeMatchMargins(0, localMatchIdx);
+          return renderMatch(match, localMatchIdx, {
             marginTop:       margins.marginTop + 'px',
             '--connector-h': connectorH + 'px',
           });
@@ -86,9 +92,9 @@ export default function RoundColumn({
     <div className="round-column">
       <div className="round-label">{displayLabel}</div>
       <div className="match-area" style={{ height: matchAreaH + 'px' }}>
-        {round.map(function(match, matchIdx) {
-          var topY = computeMatchTop(roundIdx, matchIdx);
-          return renderMatch(match, matchIdx, {
+        {round.map(function(match, localMatchIdx) {
+          var topY = computeMatchTop(roundIdx, localMatchIdx);
+          return renderMatch(match, localMatchIdx, {
             position:        'absolute',
             top:             topY + 'px',
             '--connector-h': connectorH + 'px',
