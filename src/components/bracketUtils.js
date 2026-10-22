@@ -50,6 +50,39 @@ function computeConnectorHeight(roundIdx) {
   return step / 2;
 }
 
+function getSplitBracketLayout(bracket) {
+  if (!bracket || (bracket.size !== 64 && bracket.size !== 128)) return null;
+  if (!Array.isArray(bracket.rounds) || bracket.rounds.length < 2) return null;
+
+  var finalRound = bracket.rounds[bracket.rounds.length - 1];
+  if (!Array.isArray(finalRound) || finalRound.length !== 1) return null;
+
+  function splitSide(side) {
+    return bracket.rounds.slice(0, -1).map(function(round, roundIdx) {
+      if (!Array.isArray(round) || round.length < 2 || round.length % 2 !== 0) return null;
+      var midpoint = round.length / 2;
+      var start = side === 'left' ? 0 : midpoint;
+      var end = side === 'left' ? midpoint : round.length;
+      return {
+        round: round.slice(start, end),
+        roundIdx: roundIdx,
+        matchIndices: Array.from({ length: end - start }, function(_, i) { return start + i; })
+      };
+    });
+  }
+
+  var leftRounds = splitSide('left');
+  var rightRounds = splitSide('right');
+  if (leftRounds.some(function(round) { return !round; })
+      || rightRounds.some(function(round) { return !round; })) return null;
+
+  return {
+    leftRounds: leftRounds,
+    rightRounds: rightRounds,
+    final: { match: finalRound[0], roundIdx: bracket.rounds.length - 1, matchIdx: 0 }
+  };
+}
+
 // Returns the winning participant or null
 // Null if either score is empty/null, or if scores are equal
 function resolveWinner(match) {
@@ -74,5 +107,6 @@ module.exports = {
   computeMatchTop,
   computeMatchAreaHeight,
   computeConnectorHeight,
+  getSplitBracketLayout,
   resolveWinner,
 };

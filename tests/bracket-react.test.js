@@ -4,6 +4,19 @@ const path = require('node:path');
 
 const utils = require(path.join(process.cwd(), 'src', 'components', 'bracketUtils.js'));
 
+function makeBracket(size) {
+  var matchCounts = [];
+  for (var count = size / 2; count >= 1; count /= 2) matchCounts.push(count);
+  return {
+    size: size,
+    rounds: matchCounts.map(function(matchCount, roundIdx) {
+      return Array.from({ length: matchCount }, function(_, matchIdx) {
+        return { id: 'r' + roundIdx + 'm' + matchIdx, p1: null, p2: null };
+      });
+    })
+  };
+}
+
 // ── getHcLabel ──────────────────────────────────────────────────────────────
 test('getHcLabel returns preset hc value', () => {
   assert.equal(utils.getHcLabel({ hc: 'HC 3B', hcCustom: '' }), 'HC 3B');
@@ -112,4 +125,37 @@ test('resolveWinner returns null when score2 is null', () => {
 
 test('resolveWinner returns null for null match', () => {
   assert.equal(utils.resolveWinner(null), null);
+});
+
+test('getSplitBracketLayout splits a 64-player bracket evenly and preserves match indices', () => {
+  const bracket = makeBracket(64);
+  const before = JSON.stringify(bracket);
+  const layout = utils.getSplitBracketLayout(bracket);
+
+  assert.ok(layout);
+  assert.equal(layout.leftRounds[0].round.length, 16);
+  assert.equal(layout.rightRounds[0].round.length, 16);
+  assert.equal(layout.leftRounds[0].matchIndices[0], 0);
+  assert.equal(layout.rightRounds[0].matchIndices[0], 16);
+  assert.equal(layout.leftRounds[layout.leftRounds.length - 1].round.length, 1);
+  assert.equal(layout.rightRounds[layout.rightRounds.length - 1].round.length, 1);
+  assert.equal(layout.final.match, bracket.rounds[bracket.rounds.length - 1][0]);
+  assert.equal(layout.leftRounds[0].round[0], bracket.rounds[0][0]);
+  assert.equal(JSON.stringify(bracket), before);
+});
+
+test('getSplitBracketLayout splits a 128-player bracket into 64 player slots per side', () => {
+  const bracket = makeBracket(128);
+  const layout = utils.getSplitBracketLayout(bracket);
+
+  assert.ok(layout);
+  assert.equal(layout.leftRounds[0].round.length * 2, 64);
+  assert.equal(layout.rightRounds[0].round.length * 2, 64);
+  assert.equal(layout.leftRounds[0].round.length, layout.rightRounds[0].round.length);
+  assert.equal(layout.rightRounds[0].matchIndices[0], 32);
+});
+
+test('getSplitBracketLayout declines unsupported sizes and uneven rounds', () => {
+  assert.equal(utils.getSplitBracketLayout({ size: 32, rounds: [[{}], [{}]] }), null);
+  assert.equal(utils.getSplitBracketLayout({ size: 64, rounds: [[{}, {}, {}], [{}]] }), null);
 });
