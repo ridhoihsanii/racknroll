@@ -30,7 +30,7 @@
   function getPreviewUrl(id) {
     var href = window.location.href;
     var base = href.split('?')[0].split('#')[0];
-    base = base.replace(/index\.html$/, '').replace(/\/+$/, '');
+    base = base.replace(/(?:index|bracket)\.html$/, '').replace(/\/+$/, '');
     return base + '/preview.html?id=' + id;
   }
 

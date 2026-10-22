@@ -10,7 +10,28 @@ function mountBracket() {
   if (!_root) {
     _root = createRoot(rootEl);
   }
-  _root.render(React.createElement(BracketPage));
+  _root.render(React.createElement(BracketPage, { onPreview: openBracketPreview }));
+}
+
+function openBracketPreview() {
+  var storage = window.BilposStorage;
+  var saved = storage ? storage.loadBracket() : null;
+  var tournament = storage ? storage.loadTournament() : {};
+  var payload = {
+    bracket: saved && saved.bracket ? saved.bracket : null,
+    liveMatchIds: saved && Array.isArray(saved.liveMatchIds) ? saved.liveMatchIds : [],
+    tournament: tournament
+  };
+
+  if (window.BilposFirebase) {
+    window.BilposFirebase.openPreview(payload);
+    return;
+  }
+
+  var compressed = window.LZString
+    ? window.LZString.compressToEncodedURIComponent(JSON.stringify(payload))
+    : encodeURIComponent(JSON.stringify(payload));
+  window.open('preview.html#' + compressed, '_blank');
 }
 
 if (document.readyState === 'loading') {
@@ -18,14 +39,3 @@ if (document.readyState === 'loading') {
 } else {
   mountBracket();
 }
-
-// Fire bilpos:bracket-activated when the Bracket nav tab is clicked so
-// BracketPage can re-read fresh participant data from BilposStorage.
-document.addEventListener('DOMContentLoaded', function() {
-  var navItem = document.querySelector('.sidebar-nav-item[data-section="bracket"]');
-  if (navItem) {
-    navItem.addEventListener('click', function() {
-      window.dispatchEvent(new CustomEvent('bilpos:bracket-activated'));
-    });
-  }
-});

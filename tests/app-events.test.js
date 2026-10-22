@@ -494,32 +494,6 @@ test('size change dispatches bilpos:bracket-activated event', () => {
   );
 });
 
-test('clicking bracket nav item dispatches bilpos:bracket-activated event', () => {
-  const loaded = loadApp();
-  const app = loaded.BilposApp;
-
-  app.tournament = { size: 32, fee: 0 };
-  app.renderStats = function() {};
-  app.renderParticipantTable = function() {};
-
-  // Tambah nav items ke fake DOM
-  const bracketNavItem = appendElement(loaded.document, 'div', {
-    className: 'sidebar-nav-item',
-    dataset: { section: 'bracket' }
-  });
-  appendElement(loaded.document, 'div', {
-    id: 'section-bracket'
-  });
-
-  app.wireEvents();
-  bracketNavItem.dispatchEvent('click', {});
-
-  assert.ok(
-    loaded.dispatchedEvents.includes('bilpos:bracket-activated'),
-    'Expected bilpos:bracket-activated to be dispatched when bracket nav is clicked'
-  );
-});
-
 test('bracket assignment rejects duplicate and out-of-range slots without writes', () => {
   const participants = [
     { id: 'row-1', slot: 1, drawingNumber: 1, name: 'Alpha' },

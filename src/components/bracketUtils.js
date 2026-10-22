@@ -83,6 +83,22 @@ function getSplitBracketLayout(bracket) {
   };
 }
 
+function getFitScale(viewportHeight, contentHeight) {
+  var viewport = Number(viewportHeight);
+  var content = Number(contentHeight);
+  if (!Number.isFinite(viewport) || viewport <= 0
+      || !Number.isFinite(content) || content <= 0) return 1;
+  return Math.min(1, viewport / content);
+}
+
+function clampZoom(zoom, fitZoom) {
+  var requested = Number(zoom);
+  var minimum = Number(fitZoom);
+  if (!Number.isFinite(minimum) || minimum <= 0) minimum = 1;
+  if (!Number.isFinite(requested)) requested = minimum;
+  return Math.max(requested, minimum);
+}
+
 // Returns the winning participant or null
 // Null if either score is empty/null, or if scores are equal
 function resolveWinner(match) {
@@ -108,5 +124,7 @@ module.exports = {
   computeMatchAreaHeight,
   computeConnectorHeight,
   getSplitBracketLayout,
+  getFitScale,
+  clampZoom,
   resolveWinner,
 };

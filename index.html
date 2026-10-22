@@ -10,7 +10,6 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/style.css">
-  <link rel="stylesheet" href="assets/js/bracket.bundle.css">
 </head>
 <body>
   <div class="bilpos-app">
@@ -27,9 +26,9 @@
           <div class="sidebar-nav-item" data-section="dashboard">Dashboard</div>
           <div class="sidebar-nav-item" data-section="setup">Tournament Setup</div>
           <div class="sidebar-nav-item" data-section="participants">List Peserta RNR</div>
-          <div class="sidebar-nav-item" data-section="bracket">
+          <a class="sidebar-nav-item" href="bracket.html">
             <i class="fas fa-sitemap"></i> Bracket
-          </div>
+          </a>
         </nav>
       </div>
       <div class="header-actions">
@@ -178,22 +177,6 @@
         </div>
       </section>
 
-      <section class="bilpos-section" id="section-bracket">
-        <div class="section-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
-          <div class="section-title">
-            <i class="fas fa-sitemap"></i>
-            Tournament Bracket
-          </div>
-          <button id="btn-preview-bracket" title="Buka preview fullscreen yang bisa dibagikan" style="display:flex;align-items:center;gap:7px;padding:8px 16px;border-radius:8px;border:1.5px solid rgba(250,204,21,0.4);background:rgba(250,204,21,0.07);color:#FACC15;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;letter-spacing:.5px;transition:background .15s,border-color .15s;">
-            <i class="fas fa-eye"></i> PREVIEW
-          </button>
-        </div>
-        <div id="bracket-react-root"></div>
-      </section>
-
-
-
-
       <footer class="bilpos-footer mt-4">
         Built with <span class="heart">❤️</span> by <span>Ihsan</span>
       </footer>
@@ -215,6 +198,5 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
   <script src="assets/js/firebase-sync.js"></script>
-  <script src="assets/js/bracket.bundle.js"></script>
 </body>
 </html>

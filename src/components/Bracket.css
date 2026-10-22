@@ -4,6 +4,155 @@
    ROUND_GAP=48px, ARM_LENGTH=24px
    ================================================================ */
 
+.bracket-standalone-body {
+  min-height: 100%;
+  overflow-x: hidden;
+  overflow-y: hidden;
+}
+
+.bracket-page {
+  height: 100vh;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.bracket-page-toolbar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 20px;
+  border-bottom: 1px solid rgba(100, 140, 180, 0.2);
+  background: #0a0a0a;
+}
+
+.bracket-page-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #facc15;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.bracket-page-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.bracket-zoom-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px;
+  border: 1px solid rgba(100, 140, 180, 0.25);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.bracket-zoom-controls button {
+  min-width: 32px;
+  height: 30px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: #d5dbe5;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.bracket-zoom-controls button:hover:not(:disabled) {
+  background: rgba(250, 204, 21, 0.12);
+  color: #facc15;
+}
+
+.bracket-zoom-controls button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.bracket-preview-button {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 16px;
+  border: 1.5px solid rgba(250, 204, 21, 0.4);
+  border-radius: 8px;
+  background: rgba(250, 204, 21, 0.07);
+  color: #facc15;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.bracket-preview-button:hover {
+  border-color: rgba(250, 204, 21, 0.7);
+  background: rgba(250, 204, 21, 0.12);
+}
+
+.bracket-page-content {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+.bracket-page-content[data-zoom-mode='zoomed'] {
+  overflow-y: auto;
+}
+
+.bracket-scaled-canvas {
+  position: relative;
+}
+
+.bracket-scaled-content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: top left;
+}
+
+.bracket-fit-content {
+  display: inline-block;
+  width: max-content;
+}
+
+.bracket-fit-content .bracket-scroll-container,
+.bracket-fit-content .bracket-view {
+  width: max-content;
+  overflow: visible;
+}
+
+@media (max-width: 767px) {
+  .bracket-page-toolbar {
+    padding: 8px 10px;
+  }
+
+  .bracket-page-title {
+    font-size: 13px;
+  }
+
+  .bracket-page-actions {
+    gap: 6px;
+  }
+
+  .bracket-preview-button {
+    padding: 7px 9px;
+  }
+}
+
 /* ──── Bracket scroll container (outer wrapper for horizontal scrolling) ──── */
 .bracket-scroll-container {
   overflow-x: auto;

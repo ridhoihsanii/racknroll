@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useCallback, useRef } from 'react';
 import BracketView from './BracketView';
-import { resolveWinner } from './bracketUtils';
+import { clampZoom, getFitScale, resolveWinner } from './bracketUtils';
 
 // Mutating cascade-clear for use on already-deepCloned brackets.
 // Clears the slot populated by match (roundIdx, matchIdx) and recurses
@@ -101,9 +101,49 @@ function loadInitialState() {
   return { bracket: bracket, liveMatchIds: liveMatchIds, participants: participants };
 }
 
-export default function BracketPage() {
+export default function BracketPage({ onPreview }) {
   var [state, setState] = useState(loadInitialState);
+  var [fitScale, setFitScale] = useState(1);
+  var [zoomFactor, setZoomFactor] = useState(1);
+  var [contentSize, setContentSize] = useState({ width: 0, height: 0 });
   var participantUpdatePending = useRef(false);
+  var viewportRef = useRef(null);
+  var measureRef = useRef(null);
+
+  var measureBracket = useCallback(function() {
+    var viewport = viewportRef.current;
+    var content = measureRef.current;
+    if (!viewport || !content) return;
+
+    var width = Math.max(content.offsetWidth, content.scrollWidth);
+    var height = Math.max(content.offsetHeight, content.scrollHeight);
+    setContentSize(function(previous) {
+      return previous.width === width && previous.height === height
+        ? previous
+        : { width: width, height: height };
+    });
+    setFitScale(getFitScale(viewport.clientHeight, height));
+  }, []);
+
+  useLayoutEffect(function() {
+    var viewport = viewportRef.current;
+    var content = measureRef.current;
+    if (!viewport || !content) return;
+
+    measureBracket();
+    var observer = typeof ResizeObserver !== 'undefined'
+      ? new ResizeObserver(measureBracket)
+      : null;
+    if (observer) {
+      observer.observe(viewport);
+      observer.observe(content);
+    }
+    window.addEventListener('resize', measureBracket);
+    return function() {
+      if (observer) observer.disconnect();
+      window.removeEventListener('resize', measureBracket);
+    };
+  }, [measureBracket]);
 
   // Re-read storage when participants/tournament storage keys change (cross-tab)
   useEffect(function() {
@@ -134,13 +174,6 @@ export default function BracketPage() {
     participantUpdatePending.current = false;
     dispatchParticipantsUpdated();
   }, [state.participants]);
-
-  // Re-read storage when bracket nav tab is clicked (bilpos:bracket-activated event)
-  useEffect(function() {
-    function onActivated() { setState(loadInitialState()); }
-    window.addEventListener('bilpos:bracket-activated', onActivated);
-    return function() { window.removeEventListener('bilpos:bracket-activated', onActivated); };
-  }, []);
 
   var saveState = useCallback(function(newBracket, newLiveMatchIds) {
     if (window.BilposStorage) {
@@ -272,40 +305,103 @@ export default function BracketPage() {
     });
   }, [saveState]);
 
+  var scale = fitScale * zoomFactor;
+  var isZoomed = zoomFactor > 1.0001;
+  var canvasWidth = contentSize.width * scale;
+  var canvasHeight = contentSize.height * scale;
+
+  function zoomIn() {
+    setZoomFactor(function(current) { return current * 1.2; });
+  }
+
+  function zoomOut() {
+    setZoomFactor(function(current) { return clampZoom(current / 1.2, 1); });
+  }
+
+  var bracketContent;
   if (!state.bracket || !state.bracket.rounds || state.bracket.rounds.length === 0) {
-    return (
+    bracketContent = (
       <div className="bracket-empty">
         <div className="bracket-empty-icon">🏆</div>
         <p>Setup tournament terlebih dahulu dan tambahkan peserta di menu Tournament Setup.</p>
       </div>
     );
+  } else {
+    const usedParticipantIds = new Set(
+      (state.bracket?.rounds?.[0] ?? [])
+        .flatMap(m => [m.p1, m.p2])
+        .filter(Boolean)
+        .map(p => String(p.id))
+    );
+
+    const rounds = state.bracket?.rounds ?? [];
+    const totalRounds = rounds.length;
+    const roundLabels = rounds.map((_, i) =>
+      window.BilposTournament
+        ? window.BilposTournament.getRoundLabel(i, totalRounds)
+        : String(i + 1)
+    );
+
+    bracketContent = (
+      <BracketView
+        bracket={state.bracket}
+        participants={state.participants}
+        liveMatchIds={state.liveMatchIds}
+        onScoreChange={handleScoreChange}
+        onSelectParticipant={handleSelectParticipant}
+        onToggleLive={handleToggleLive}
+        usedParticipantIds={usedParticipantIds}
+        roundLabels={roundLabels}
+      />
+    );
   }
 
-  const usedParticipantIds = new Set(
-    (state.bracket?.rounds?.[0] ?? [])
-      .flatMap(m => [m.p1, m.p2])
-      .filter(Boolean)
-      .map(p => String(p.id))
-  );
-
-  const rounds = state.bracket?.rounds ?? [];
-  const totalRounds = rounds.length;
-  const roundLabels = rounds.map((_, i) =>
-    window.BilposTournament
-      ? window.BilposTournament.getRoundLabel(i, totalRounds)
-      : String(i + 1)
-  );
-
   return (
-    <BracketView
-      bracket={state.bracket}
-      participants={state.participants}
-      liveMatchIds={state.liveMatchIds}
-      onScoreChange={handleScoreChange}
-      onSelectParticipant={handleSelectParticipant}
-      onToggleLive={handleToggleLive}
-      usedParticipantIds={usedParticipantIds}
-      roundLabels={roundLabels}
-    />
+    <div className="bracket-page" data-zoom-mode={isZoomed ? 'zoomed' : 'fit'}>
+      <header className="bracket-page-toolbar">
+        <div className="bracket-page-title">
+          <i className="fas fa-sitemap" aria-hidden="true"></i>
+          <span>Tournament Bracket</span>
+        </div>
+        <div className="bracket-page-actions">
+          <div className="bracket-zoom-controls" aria-label="Kontrol ukuran bracket">
+            <button id="btn-zoom-out" type="button" title="Zoom out" onClick={zoomOut} disabled={!isZoomed}>
+              <i className="fas fa-minus" aria-hidden="true"></i>
+            </button>
+            <button id="btn-fit" type="button" title="Sesuaikan ke layar" onClick={function() { setZoomFactor(1); }}>
+              FIT
+            </button>
+            <button id="btn-zoom-in" type="button" title="Zoom in" onClick={zoomIn}>
+              <i className="fas fa-plus" aria-hidden="true"></i>
+            </button>
+          </div>
+          <button
+            id="btn-preview-bracket"
+            className="bracket-preview-button"
+            type="button"
+            title="Buka preview fullscreen yang bisa dibagikan"
+            onClick={onPreview}
+          >
+            <i className="fas fa-eye" aria-hidden="true"></i> PREVIEW
+          </button>
+        </div>
+      </header>
+      <main
+        className="bracket-page-content bracket-scroll-container"
+        data-zoom-mode={isZoomed ? 'zoomed' : 'fit'}
+        ref={viewportRef}
+      >
+        <div className="bracket-scaled-canvas" style={{ width: canvasWidth, height: canvasHeight }}>
+          <div
+            className="bracket-scaled-content"
+            style={{ transform: 'scale(' + scale + ')' }}
+          >
+            <div className="bracket-fit-content" ref={measureRef}>
+              {bracketContent}
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
   );
 }

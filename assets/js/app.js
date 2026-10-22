@@ -402,6 +402,7 @@
       document.querySelectorAll('.sidebar-nav-item').forEach(function (item) {
         item.addEventListener('click', function () {
           var section = item.dataset.section;
+          if (!section) return;
           document.querySelectorAll('.sidebar-nav-item').forEach(function (it) { it.classList.remove('active'); });
           item.classList.add('active');
           var el = document.getElementById('section-' + section);
@@ -614,29 +615,6 @@
         importJsonInput.addEventListener('change', function (e) { self.importJSON(e.target.files[0]); });
       }
 
-      // Preview bracket button
-      var previewBtn = getElement('btn-preview-bracket');
-      if (previewBtn) {
-        previewBtn.addEventListener('click', function () {
-          var saved      = window.BilposStorage ? BilposStorage.loadBracket()    : null;
-          var tournament = window.BilposStorage ? BilposStorage.loadTournament() : {};
-          var payloadObj = {
-            bracket:      saved && saved.bracket      ? saved.bracket      : null,
-            liveMatchIds: saved && saved.liveMatchIds ? saved.liveMatchIds : [],
-            tournament:   tournament
-          };
-
-          if (window.BilposFirebase) {
-            BilposFirebase.openPreview(payloadObj);
-          } else {
-            // Fallback: hash-based URL
-            var compressed = window.LZString
-              ? LZString.compressToEncodedURIComponent(JSON.stringify(payloadObj))
-              : encodeURIComponent(JSON.stringify(payloadObj));
-            window.open('preview.html#' + compressed, '_blank');
-          }
-        });
-      }
     },
 
     getParticipantForRow: function (rowIndex) {

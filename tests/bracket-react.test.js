@@ -159,3 +159,15 @@ test('getSplitBracketLayout declines unsupported sizes and uneven rounds', () =>
   assert.equal(utils.getSplitBracketLayout({ size: 32, rounds: [[{}], [{}]] }), null);
   assert.equal(utils.getSplitBracketLayout({ size: 64, rounds: [[{}, {}, {}], [{}]] }), null);
 });
+
+test('getFitScale fits tall content but never enlarges content already in view', () => {
+  assert.equal(utils.getFitScale(400, 800), 0.5);
+  assert.equal(utils.getFitScale(800, 400), 1);
+  assert.equal(utils.getFitScale(0, 400), 1);
+});
+
+test('clampZoom never allows application zoom below the FIT scale', () => {
+  assert.equal(utils.clampZoom(0.8, 1), 1);
+  assert.equal(utils.clampZoom(1.2, 1), 1.2);
+  assert.equal(utils.clampZoom(0.4, 0.5), 0.5);
+});

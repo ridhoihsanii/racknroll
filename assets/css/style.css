@@ -184,6 +184,7 @@ button {
 /* Top taskbar menu */
 .top-taskbar { display:flex; gap:18px; align-items:center; }
 .top-taskbar .sidebar-nav-item { padding:8px 12px; border-radius:8px; color:var(--text-secondary); cursor:pointer; font-weight:700; }
+.top-taskbar a.sidebar-nav-item { text-decoration:none; }
 .top-taskbar .sidebar-nav-item:hover { color:var(--text-primary); background: rgba(250,204,21,0.04); }
 .top-taskbar .sidebar-nav-item.active { color:var(--bilpos-yellow); background: rgba(250,204,21,0.08); border:1px solid rgba(250,204,21,0.12); }
 
