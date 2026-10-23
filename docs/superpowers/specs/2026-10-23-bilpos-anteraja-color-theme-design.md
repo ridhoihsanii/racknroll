@@ -1,7 +1,7 @@
 # Bilpos Anteraja Color Theme — Design Spec
 
 **Date:** 2026-10-23  
-**Status:** Approved by user; awaiting written spec review
+**Status:** Approved by user
 
 ## Context
 
