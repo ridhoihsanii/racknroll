@@ -9,19 +9,46 @@ function readStyleSheet() {
   return fs.readFileSync(stylesheetPath, 'utf8');
 }
 
-test('style.css defines the Bilpos premium design tokens', () => {
+test('style.css defines the Anteraja palette in both app themes', () => {
   const source = readStyleSheet();
 
   [
-    '--bilpos-yellow: #FACC15;',
-    '--bilpos-gold: #EAB308;',
-    '--bilpos-black: #0A0A0A;',
-    '--bilpos-surface-2: #222222;',
-    '--shadow-yellow: 0 0 20px rgba(250,204,21,0.2);',
+    '--anteraja-primary: #ED0677;',
+    '--anteraja-secondary: #FFCB05;',
+    '--bg: #1A1214;',
+    '--bg: #FFFAFC;',
     '--transition: all 0.25s cubic-bezier(0.4,0,0.2,1);'
   ].forEach((token) => {
-    assert.match(source, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+    assert.ok(source.includes(token), `missing palette token: ${token}`);
   });
+});
+
+test('preview.html uses the Anteraja light palette', () => {
+  const previewPath = path.join(process.cwd(), 'preview.html');
+  const source = fs.readFileSync(previewPath, 'utf8');
+
+  assert.match(source, /--bg:\s*#FFFAFC;/);
+  assert.match(source, /--accent:\s*#ED0677;/);
+  assert.doesNotMatch(source, /#d97706|rgba\(217,\s*119,\s*6/);
+});
+
+test('bracket sources use the Anteraja primary accent', () => {
+  const bracketScript = fs.readFileSync(
+    path.join(process.cwd(), 'assets', 'js', 'bracket.js'),
+    'utf8'
+  );
+  const bracketStyles = fs.readFileSync(
+    path.join(process.cwd(), 'src', 'components', 'Bracket.css'),
+    'utf8'
+  );
+  const source = `${bracketScript}\n${bracketStyles}`;
+
+  assert.match(source, /var\(--anteraja-primary\)/);
+  assert.doesNotMatch(source, /#FACC15|EAB308|250,\s*204,\s*21|rgba\(2,\s*6,\s*23/);
+  assert.match(
+    bracketStyles,
+    /\.participant-select option\s*\{\s*background-color:\s*var\(--surface\);\s*color:\s*var\(--text\);/
+  );
 });
 
 test('style.css includes premium layout, component, and responsive sections', () => {
@@ -58,8 +85,8 @@ test('style.css includes required interactive and animation details', () => {
 
   [
     'backdrop-filter: blur(20px);',
-    'background: linear-gradient(135deg, var(--bilpos-yellow) 0%, var(--bilpos-gold) 100%);',
-    'box-shadow: var(--shadow-yellow);',
+    'background: linear-gradient(135deg, var(--anteraja-primary) 0%, var(--anteraja-primary-dark) 100%);',
+    'box-shadow: var(--shadow-brand);',
     'position: sticky;',
     'animation: livePulse 2s ease-in-out infinite;',
     '@keyframes fadeIn',

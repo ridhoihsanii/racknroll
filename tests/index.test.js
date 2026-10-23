@@ -19,7 +19,7 @@ test('index.html provides the Bilpos SPA shell and required asset loading', () =
     '<meta charset="UTF-8"/>',
     '<meta name="viewport" content="width=device-width, initial-scale=1.0"/>',
     '<meta name="description" content="BILPOS - Professional Billiard Tournament Management System by Billiard Positif"/>',
-    '<meta name="theme-color" content="#0A0A0A"/>',
+    '<meta name="theme-color" content="#1A1214"/>',
     '<title>BILPOS — Billiard Positif Tournament System</title>',
     '<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">',
     '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">',
@@ -134,4 +134,8 @@ test('participant section exposes Excel transfer controls and the Bracket column
   assert.match(participantSection, /<th[^>]*>BRACKET<\/th>/);
   assert.ok(transferModuleIndex >= 0);
   assert.ok(transferModuleIndex < appModuleIndex);
+});
+
+test('index.html advertises the Anteraja dark theme color', () => {
+  assert.match(readIndex(), /<meta name="theme-color" content="#1A1214"\/>/);
 });

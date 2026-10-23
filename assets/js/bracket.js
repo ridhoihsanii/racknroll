@@ -219,7 +219,7 @@
     addClass(row, 'player-bye', isByeParticipant(participant));
 
     if (row.classList.contains('player-winner')) {
-      row.style.background = 'rgba(250,204,21,0.08)';
+      row.style.background = 'rgba(237,6,119,0.08)';
       row.style.borderRadius = '10px';
       row.style.paddingLeft = '8px';
       row.style.paddingRight = '8px';
@@ -380,7 +380,7 @@
           roundLabel.style.top = '8px';
           roundLabel.style.left = '12px';
           roundLabel.style.fontWeight = '800';
-          roundLabel.style.color = 'var(--bilpos-yellow)';
+          roundLabel.style.color = 'var(--anteraja-primary)';
           roundLabel.style.fontSize = '0.9rem';
           roundColumn.appendChild(roundLabel);
         } catch (err) {}
@@ -395,7 +395,7 @@
               labelA.style.position = 'absolute';
               labelA.style.left = '8px';
               labelA.style.top = '8px';
-              labelA.style.color = 'var(--bilpos-yellow)';
+              labelA.style.color = 'var(--anteraja-primary)';
               labelA.style.fontWeight = '800';
               labelA.style.fontSize = '0.9rem';
               roundColumn.appendChild(labelA);
@@ -405,7 +405,7 @@
               labelB.style.position = 'absolute';
               labelB.style.left = '8px';
               labelB.style.top = '8px';
-              labelB.style.color = 'var(--bilpos-yellow)';
+              labelB.style.color = 'var(--anteraja-primary)';
               labelB.style.fontWeight = '800';
               labelB.style.fontSize = '0.9rem';
               roundColumn.appendChild(labelB);
@@ -456,18 +456,18 @@
       card.style.minHeight = CARD_HEIGHT + 'px';
       card.style.padding = '12px 14px';
       card.style.borderRadius = CARD_RADIUS + 'px';
-      card.style.border = '1px solid rgba(250,204,21,0.18)';
-      card.style.background = 'linear-gradient(180deg, rgba(15,23,42,0.96) 0%, rgba(2,6,23,0.96) 100%)';
-      card.style.boxShadow = '0 12px 30px rgba(2,6,23,0.38)';
-      card.style.color = '#f8fafc';
+      card.style.border = '1px solid rgba(237,6,119,0.18)';
+      card.style.background = 'linear-gradient(180deg, var(--anteraja-surface) 0%, var(--anteraja-dark) 100%)';
+      card.style.boxShadow = '0 12px 30px rgba(0,0,0,0.38)';
+      card.style.color = 'var(--anteraja-primary-contrast)';
 
       addClass(card, 'match-live', match.status === 'live');
       addClass(card, 'match-done', match.status === 'done');
       addClass(card, 'match-bye', hasBye);
 
       if (match.status === 'live') {
-        card.style.borderColor = 'rgba(250,204,21,0.5)';
-        card.style.boxShadow = '0 16px 40px rgba(250,204,21,0.16)';
+        card.style.borderColor = 'rgba(237,6,119,0.5)';
+        card.style.boxShadow = '0 16px 40px rgba(237,6,119,0.16)';
       }
 
       if (match.status === 'done') {
@@ -508,9 +508,9 @@
         button.style.height = '30px';
         button.style.padding = '0 12px';
         button.style.borderRadius = '999px';
-        button.style.border = '1px solid rgba(250,204,21,0.3)';
-        button.style.background = 'rgba(250,204,21,0.1)';
-        button.style.color = '#fde68a';
+        button.style.border = '1px solid rgba(237,6,119,0.3)';
+        button.style.background = 'rgba(237,6,119,0.1)';
+        button.style.color = '#F6AABF';
         button.style.fontSize = '11px';
         button.style.fontWeight = '800';
         button.style.letterSpacing = '0.08em';
@@ -628,7 +628,7 @@
 
           path.setAttribute('class', 'connector-path');
           path.setAttribute('d', d);
-          path.setAttribute('stroke', 'rgba(250,204,21,0.4)');
+          path.setAttribute('stroke', 'rgba(237,6,119,0.4)');
           path.setAttribute('stroke-width', '2');
           path.setAttribute('fill', 'none');
           path.setAttribute('stroke-linecap', 'round');

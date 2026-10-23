@@ -26,14 +26,14 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:        #f1f5f9;
+      --bg:        #FFFAFC;
       --surface:   #ffffff;
-      --border:    #cbd5e1;
-      --text:      #0f172a;
-      --muted:     #64748b;
-      --accent:    #d97706;
-      --green:     #16a34a;
-      --red:       #dc2626;
+      --border:    #f3d9e4;
+      --text:      #3B2C2F;
+      --muted:     #6b5a5e;
+      --accent:    #ED0677;
+      --green:     #22C55E;
+      --red:       #EF4444;
       --card-h:    100px;
       --card-w:    260px;
       --card-gap:  8px;
@@ -123,7 +123,7 @@
       color: var(--accent);
       margin-bottom: 12px;
       padding: 4px 8px;
-      background: rgba(217,119,6,0.08);
+      background: rgba(237,6,119,0.08);
       border-radius: 6px;
       white-space: nowrap;
     }
@@ -192,8 +192,8 @@
       overflow: hidden;
     }
     .mc.is-live {
-      border-color: #dc2626;
-      box-shadow: 0 0 12px 3px rgba(220,38,38,0.2);
+      border-color: #EF4444;
+      box-shadow: 0 0 12px 3px rgba(239,68,68,0.2);
     }
     .mc-header {
       display: flex;
@@ -213,7 +213,7 @@
       font-weight: 700;
       padding: 1px 6px;
       border-radius: 4px;
-      background: #dc2626;
+      background: #EF4444;
       color: #fff;
       letter-spacing: .5px;
     }
@@ -227,8 +227,8 @@
       border-left: 3px solid transparent;
       border-radius: 3px;
     }
-    .mc-slot.win-slot  { border-left-color: var(--green); background: rgba(22,163,74,0.07); }
-    .mc-slot.lose-slot { opacity: .55; border-left-color: rgba(220,38,38,0.3); }
+    .mc-slot.win-slot  { border-left-color: var(--green); background: rgba(34,197,94,0.07); }
+    .mc-slot.lose-slot { opacity: .55; border-left-color: rgba(239,68,68,0.3); }
     .mc-name {
       flex: 1;
       font-size: 10px;
@@ -257,8 +257,8 @@
       letter-spacing: .5px;
       text-transform: uppercase;
     }
-    .mc-badge.win  { background: rgba(22,163,74,0.12);  color: var(--green); border: 1px solid rgba(22,163,74,0.3); }
-    .mc-badge.lose { background: rgba(220,38,38,0.08);  color: var(--red);   border: 1px solid rgba(220,38,38,0.2); }
+    .mc-badge.win  { background: rgba(34,197,94,0.12);  color: var(--green); border: 1px solid rgba(34,197,94,0.3); }
+    .mc-badge.lose { background: rgba(239,68,68,0.08);  color: var(--red);   border: 1px solid rgba(239,68,68,0.2); }
 
     /* ── Error / empty state ──────────────────────────── */
     .empty-state {
@@ -301,7 +301,7 @@
     .qr-title {
       font-size: 9px;
       font-weight: 700;
-      color: #1e293b;
+      color: #3B2C2F;
       letter-spacing: 1px;
       text-transform: uppercase;
     }
@@ -318,14 +318,14 @@
     /* QR canvas: square, no rounding, with visible border */
     .qr-card canvas {
       border-radius: 0;
-      border: 2px solid #0f172a;
+      border: 2px solid #3B2C2F;
       display: block;
     }
     .qr-copy {
       font-size: 9px;
-      color: #475569;
-      background: #f1f5f9;
-      border: 1px solid #cbd5e1;
+      color: #6b5a5e;
+      background: #FFF3F7;
+      border: 1px solid #f3d9e4;
       border-radius: 6px;
       padding: 4px 10px;
       cursor: pointer;
@@ -333,11 +333,11 @@
       width: 100%;
       text-align: center;
     }
-    .qr-copy:hover { background: #e2e8f0; }
+    .qr-copy:hover { background: #FFF8FB; }
     .btn-qr {
-      background: rgba(217,119,6,0.1);
-      border: 1px solid rgba(217,119,6,0.3);
-      color: #d97706;
+      background: rgba(237,6,119,0.1);
+      border: 1px solid rgba(237,6,119,0.3);
+      color: #ED0677;
       font-family: inherit;
       font-size: 10px;
       font-weight: 600;
@@ -346,7 +346,7 @@
       cursor: pointer;
       letter-spacing: .5px;
     }
-    .btn-qr:hover { background: rgba(217,119,6,0.2); }
+    .btn-qr:hover { background: rgba(237,6,119,0.2); }
 
     /* ── Responsive ───────────────────────────────────── */
     @media (max-width: 600px) {
@@ -372,7 +372,7 @@
     <span>·</span>
     <span>📱 Pinch to zoom · Drag to pan</span>
     <span>·</span>
-    <button id="btn-fit" style="background:rgba(217,119,6,0.1);border:1px solid rgba(217,119,6,0.3);color:#d97706;font-family:inherit;font-size:10px;font-weight:600;padding:3px 9px;border-radius:5px;cursor:pointer;letter-spacing:.5px;">⊡ FIT</button>
+    <button id="btn-fit" style="background:rgba(237,6,119,0.1);border:1px solid rgba(237,6,119,0.3);color:#ED0677;font-family:inherit;font-size:10px;font-weight:600;padding:3px 9px;border-radius:5px;cursor:pointer;letter-spacing:.5px;">⊡ FIT</button>
     <button id="btn-qr" class="btn-qr">📲 QR CODE</button>
   </div>
 </header>
@@ -387,7 +387,7 @@
     <button class="qr-close" id="qr-close" title="Tutup">✕</button>
   </div>
   <div id="qr-wrap" style="display:flex;align-items:center;justify-content:center;min-width:100px;min-height:100px;">
-    <span id="qr-status" style="font-size:10px;color:#64748b;text-align:center;">Generating…</span>
+    <span id="qr-status" style="font-size:10px;color:#6b5a5e;text-align:center;">Generating…</span>
   </div>
   <button class="qr-copy" id="qr-copy-btn">📋 Copy link</button>
 </div>
@@ -620,13 +620,13 @@ function initQR() {
       cvs.width  = canvasSize;
       cvs.height = canvasSize;
       cvs.style.display       = 'block';
-      cvs.style.border        = '3px solid #0f172a';
+      cvs.style.border        = '3px solid #3B2C2F';
       cvs.style.borderRadius  = '0';
 
       var ctx = cvs.getContext('2d');
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(0, 0, canvasSize, canvasSize);
-      ctx.fillStyle = '#0f172a';
+      ctx.fillStyle = '#3B2C2F';
       for (var row = 0; row < moduleCount; row++) {
         for (var col = 0; col < moduleCount; col++) {
           if (qr.isDark(row, col)) {
@@ -640,10 +640,10 @@ function initQR() {
       wrap.style.minHeight = '';
       wrap.appendChild(cvs);
     } catch(e) {
-      wrap.innerHTML = '<span style="font-size:9px;color:#dc2626;text-align:center;padding:8px;">URL terlalu panjang.<br>Gunakan Copy link.</span>';
+      wrap.innerHTML = '<span style="font-size:9px;color:#EF4444;text-align:center;padding:8px;">URL terlalu panjang.<br>Gunakan Copy link.</span>';
     }
   } else {
-    wrap.innerHTML = '<span style="font-size:9px;color:#dc2626;text-align:center;padding:8px;">QR library<br>gagal dimuat.</span>';
+    wrap.innerHTML = '<span style="font-size:9px;color:#EF4444;text-align:center;padding:8px;">QR library<br>gagal dimuat.</span>';
   }
 
   copyBtn.addEventListener('click', function() {
