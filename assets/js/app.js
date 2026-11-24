@@ -323,10 +323,10 @@
               '</div>' +
             '</td>' +
             '<td data-label="Nama">' +
-              '<input type="text" class="table-input name-input" data-row="' + i + '" placeholder="Nama peserta..." value="' + escapeHtml(name) + '" maxlength="40"/>' +
+              '<input type="text" class="table-input name-input" aria-label="Nama peserta ' + i + '" data-row="' + i + '" placeholder="Nama peserta..." value="' + escapeHtml(name) + '" maxlength="40"/>' +
             '</td>' +
             '<td data-label="HC">' +
-              '<select class="table-select hc-select" data-row="' + i + '">' +
+              '<select class="table-select hc-select" aria-label="Handicap peserta ' + i + '" data-row="' + i + '">' +
                 '<option value="">— HC —</option>' +
                 '<option value="HC Pemula"' + (hcValue === 'HC Pemula' ? ' selected' : '') + '>HC Pemula</option>' +
                 '<option value="HC 3SB"' + (hcValue === 'HC 3SB' ? ' selected' : '') + '>HC 3SB</option>' +
@@ -338,10 +338,10 @@
               '<input type="text" class="hc-custom-input ' + customVisible + '" data-row="' + i + '" placeholder="Tulis HC..." value="' + escapeHtml(hcCustom) + '" maxlength="20"/>' +
             '</td>' +
             '<td data-label="Bracket">' +
-              '<input type="number" class="table-input bracket-input" data-row="' + i + '" min="1" max="' + size + '" placeholder="-" value="' + escapeHtml(participant && participant.drawingNumber != null ? participant.drawingNumber : '') + '"/>' +
+              '<input type="number" class="table-input bracket-input" aria-label="Nomor bracket peserta ' + i + '" data-row="' + i + '" min="1" max="' + size + '" placeholder="-" value="' + escapeHtml(participant && participant.drawingNumber != null ? participant.drawingNumber : '') + '"/>' +
             '</td>' +
             '<td class="cell-actions">' +
-              '<button class="btn-delete-row btn-export" data-row="' + i + '" data-participant-id="' + escapeHtml(participantId) + '"><i class="fas fa-trash"></i></button>' +
+              '<button class="btn-delete-row btn-export" aria-label="Hapus peserta ' + i + '" data-row="' + i + '" data-participant-id="' + escapeHtml(participantId) + '"><i class="fas fa-trash"></i></button>' +
             '</td>' +
           '</tr>'
         );
@@ -559,7 +559,7 @@
       var resetAllBtn = getElement('btn-reset-all');
       if (resetAllBtn) {
         resetAllBtn.addEventListener('click', function () {
-          if (confirm('RESET SEMUA DATA? Tindakan ini tidak dapat dibatalkan!')) {
+          if (self.confirmWithBackup('RESET SEMUA DATA? Tindakan ini tidak dapat dibatalkan!')) {
             BilposStorage.clearAll();
             location.reload();
           }
@@ -569,7 +569,7 @@
       var deleteAllBtn = getElement('btn-delete-all');
       if (deleteAllBtn) {
         deleteAllBtn.addEventListener('click', function () {
-          if (confirm('Hapus semua peserta? Tindakan ini akan mengosongkan daftar peserta.')) {
+          if (self.confirmWithBackup('Hapus semua peserta? Tindakan ini akan mengosongkan daftar peserta.')) {
             BilposStorage.saveParticipants([]);
             self.participants = [];
             self.renderParticipantTable();
@@ -577,6 +577,26 @@
             dispatchParticipantsUpdated();
             clearAllParticipantsFromBracket();
             if (typeof BilposUI !== 'undefined') BilposUI.showToast('Semua peserta dihapus', 'success');
+          }
+        });
+      }
+
+      var exportJsonBtn = getElement('btn-export-json');
+      if (exportJsonBtn) {
+        exportJsonBtn.addEventListener('click', function () { self.exportJSON(); });
+      }
+
+      var importJsonInput = getElement('import-json-input');
+      var importJsonBtn = getElement('btn-import-json');
+      if (importJsonBtn && importJsonInput) {
+        importJsonBtn.addEventListener('click', function () { importJsonInput.click(); });
+      }
+      if (importJsonInput) {
+        importJsonInput.addEventListener('change', function (e) {
+          var file = e.target.files && e.target.files[0];
+          e.target.value = '';
+          if (file && confirm('Pulihkan backup? Data peserta dan bracket saat ini akan diganti.')) {
+            self.importJSON(file);
           }
         });
       }
@@ -775,6 +795,14 @@
       dispatchBracketActivated();
     },
 
+    confirmWithBackup: function (message) {
+      if (!confirm(message)) return false;
+      if (confirm('Unduh backup JSON dulu sebelum melanjutkan? (disarankan)')) {
+        this.exportJSON();
+      }
+      return true;
+    },
+
     exportJSON: function () {
       var data = BilposStorage.exportAll();
       var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -793,8 +821,11 @@
       reader.onload = function (e) {
         try {
           var data = JSON.parse(e.target.result);
-          BilposStorage.importAll(data);
-          BilposUI.showToast('Data berhasil diimpor!', 'success');
+          if (!BilposStorage.importAll(data)) {
+            BilposUI.showToast('File backup tidak valid!', 'danger');
+            return;
+          }
+          BilposUI.showToast('Backup berhasil dipulihkan!', 'success');
           setTimeout(function () { location.reload(); }, 1000);
         } catch (err) {
           BilposUI.showToast('File JSON tidak valid!', 'danger');

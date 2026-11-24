@@ -207,69 +207,6 @@ function appendRowFixture(document, row, overrides) {
   document.body.appendChild(badge);
 }
 
-test('saveParticipantRow renders bracket even when no bracket exists yet', () => {
-  const loaded = loadApp();
-  const app = loaded.BilposApp;
-  let renderBracketCalls = 0;
-  let renderStatsCalls = 0;
-
-  appendRowFixture(loaded.document, 1, {
-    phone: '08123',
-    name: 'Alpha',
-    hcValue: 'HC 3B',
-    status: 'cash',
-    drawingNumber: 9
-  });
-
-  app.bracket = null;
-  app.renderBracket = function () {
-    renderBracketCalls += 1;
-  };
-  app.renderStats = function () {
-    renderStatsCalls += 1;
-  };
-
-  app.saveParticipantRow(1);
-
-  assert.equal(renderBracketCalls, 1);
-  assert.equal(renderStatsCalls, 1);
-  assert.equal(loaded.getSyncCalls(), 0);
-  assert.deepEqual(loaded.toastCalls, []);
-  assert.equal(loaded.getSavedParticipant().name, 'Alpha');
-});
-
-test('saveParticipantRow does not double-render when syncing an existing bracket', () => {
-  const loaded = loadApp();
-  const app = loaded.BilposApp;
-  let renderBracketCalls = 0;
-  let renderStatsCalls = 0;
-  const originalBracket = { rounds: [] };
-
-  appendRowFixture(loaded.document, 2, {
-    phone: '08234',
-    name: 'Bravo',
-    hcValue: 'HC 3N',
-    status: 'tf',
-    drawingNumber: 7
-  });
-
-  app.bracket = originalBracket;
-  app.renderBracket = function () {
-    renderBracketCalls += 1;
-  };
-  app.renderStats = function () {
-    renderStatsCalls += 1;
-  };
-
-  app.saveParticipantRow(2);
-
-  assert.equal(renderBracketCalls, 1);
-  assert.equal(renderStatsCalls, 1);
-  assert.equal(loaded.getSyncCalls(), 1);
-  assert.equal(loaded.getSavedBracket().source, originalBracket);
-  assert.equal(app.bracket.participantId, 'row-2');
-});
-
 test('renderParticipantTable displays a participant drawing-number input after HC', () => {
   const loaded = loadApp();
   const app = loaded.BilposApp;

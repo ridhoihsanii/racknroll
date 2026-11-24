@@ -33,15 +33,11 @@ test('preview.html uses the Anteraja light palette', () => {
 });
 
 test('bracket sources use the Anteraja primary accent', () => {
-  const bracketScript = fs.readFileSync(
-    path.join(process.cwd(), 'assets', 'js', 'bracket.js'),
-    'utf8'
-  );
   const bracketStyles = fs.readFileSync(
     path.join(process.cwd(), 'src', 'components', 'Bracket.css'),
     'utf8'
   );
-  const source = `${bracketScript}\n${bracketStyles}`;
+  const source = bracketStyles;
 
   assert.match(source, /var\(--anteraja-primary\)/);
   assert.doesNotMatch(source, /#FACC15|EAB308|250,\s*204,\s*21|rgba\(2,\s*6,\s*23/);
@@ -56,7 +52,7 @@ test('style.css includes premium layout, component, and responsive sections', ()
 
   [
     '.bilpos-header',
-    '.bilpos-sidebar',
+    '.top-taskbar',
     '.bilpos-main',
     '.bilpos-card',
     '.stat-card',

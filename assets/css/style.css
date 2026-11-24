@@ -48,7 +48,7 @@
   --text: var(--anteraja-charcoal);
   --text-primary: var(--anteraja-charcoal);
   --text-secondary: #6b5a5e;
-  --text-muted: #9c8a8e;
+  --text-muted: #7a676c;
   --anteraja-border: #f3d9e4;
   --anteraja-border-active: rgba(237,6,119,0.4);
   --accent: var(--anteraja-primary);
@@ -220,41 +220,6 @@ button {
   gap: 8px;
 }
 
-.bilpos-sidebar {
-  position: fixed;
-  top: var(--header-height);
-  left: 0;
-  bottom: 0;
-  width: var(--sidebar-width);
-  background:
-    linear-gradient(180deg, rgba(237,6,119,0.04), transparent 16%),
-    var(--anteraja-dark);
-  border-right: 1px solid var(--anteraja-border);
-  padding: 20px 0;
-  overflow-y: auto;
-  z-index: 900;
-  transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
-}
-
-.bilpos-sidebar::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 1px;
-  height: 100%;
-  background: linear-gradient(180deg, rgba(237,6,119,0.28), transparent 18%, transparent 82%, rgba(237,6,119,0.16));
-}
-
-.sidebar-section-label {
-  font-size: 0.65rem;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  color: var(--text-muted);
-  padding: 16px 20px 8px;
-  font-weight: 600;
-}
-
 .sidebar-nav-item {
   display: flex;
   align-items: center;
@@ -313,33 +278,6 @@ button {
   display: flex;
   flex-direction: column;
   gap: 24px;
-}
-
-.sidebar-overlay {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.7);
-  z-index: 850;
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-}
-
-.sidebar-overlay.active { display: block; }
-
-.hamburger-btn {
-  display: none;
-  background: none;
-  border: none;
-  color: var(--anteraja-primary);
-  font-size: 1.2rem;
-  cursor: pointer;
-  padding: 4px 8px;
-}
-
-.hamburger-btn:hover {
-  color: #FF4FA3;
-  text-shadow: 0 0 16px rgba(237,6,119,0.24);
 }
 
 .bilpos-card {
@@ -1574,22 +1512,10 @@ button {
 }
 
 @media (max-width: 991.98px) {
-  .bilpos-sidebar {
-    transform: translateX(-100%);
-  }
-
-  .bilpos-sidebar.open {
-    transform: translateX(0);
-    box-shadow: 4px 0 24px rgba(0,0,0,0.8);
-  }
-
   .bilpos-main {
     margin-left: 0;
     padding: 16px;
   }
-
-  .hamburger-btn { display: block; }
-  .header-center { display: none; }
 }
 
 @media (max-width: 575.98px) {
@@ -1695,7 +1621,7 @@ button {
 }
 
 [data-theme="light"] .row-number {
-  color: #9c8a8e;
+  color: #7a676c;
 }
 
 [data-theme="light"] .table-input {
@@ -1709,7 +1635,7 @@ button {
   border-color: var(--anteraja-primary);
 }
 
-[data-theme="light"] .table-input::placeholder { color: #9c8a8e; }
+[data-theme="light"] .table-input::placeholder { color: #7a676c; }
 
 [data-theme="light"] .table-select {
   background: #FFF8FB;
@@ -1725,7 +1651,7 @@ button {
   color: var(--anteraja-charcoal);
 }
 
-[data-theme="light"] .bilpos-input::placeholder { color: #9c8a8e; }
+[data-theme="light"] .bilpos-input::placeholder { color: #7a676c; }
 
 [data-theme="light"] .bilpos-select {
   background: #FFF8FB;
@@ -1741,7 +1667,7 @@ button {
   color: var(--anteraja-charcoal);
 }
 
-[data-theme="light"] .search-input::placeholder { color: #9c8a8e; }
+[data-theme="light"] .search-input::placeholder { color: #7a676c; }
 
 [data-theme="light"] .search-input:focus {
   background: #fef9c3;
@@ -1793,7 +1719,7 @@ button {
 
 [data-theme="light"] .status-btn {
   border-color: #f3d9e4;
-  color: #9c8a8e;
+  color: #7a676c;
 }
 
 [data-theme="light"] .btn-bilpos-secondary {
@@ -1815,14 +1741,14 @@ button {
 
 [data-theme="light"] .bilpos-footer {
   border-top-color: rgba(237,6,119,0.2);
-  color: #9c8a8e;
+  color: #7a676c;
 }
 
-[data-theme="light"] .section-subtitle { color: #9c8a8e; }
+[data-theme="light"] .section-subtitle { color: #7a676c; }
 
-[data-theme="light"] .empty-state { color: #9c8a8e; }
+[data-theme="light"] .empty-state { color: #7a676c; }
 [data-theme="light"] .empty-state h5 { color: #6b5a5e; }
-[data-theme="light"] .empty-state p { color: #9c8a8e; }
+[data-theme="light"] .empty-state p { color: #7a676c; }
 
 .btn-preview-bracket {
   display: flex;
@@ -1844,7 +1770,7 @@ button {
 /* ── Mobile refinements ──────────────────────────────────── */
 @media (max-width: 575.98px) {
   .btn-preview-bracket { min-height: 44px; font-size: 13px; width: 100%; justify-content: center; }
-  .theme-toggle, .hamburger-btn { min-width: 44px; min-height: 44px; }
+  .theme-toggle { min-width: 44px; min-height: 44px; }
   .status-btn, .btn-delete-row, .zoom-btn, .btn-draw { min-height: 44px; }
   .table-input, .table-select, .hc-custom-input { min-height: 44px; font-size: 16px; }
 

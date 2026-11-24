@@ -158,6 +158,13 @@
             <i class="fas fa-file-import me-1"></i> Import Excel
           </button>
           <input type="file" id="import-excel-input" accept=".xlsx,.xls" style="display:none"/>
+          <button type="button" class="btn-export" id="btn-export-json" aria-label="Unduh backup JSON">
+            <i class="fas fa-download me-1"></i> Backup
+          </button>
+          <button type="button" class="btn-export" id="btn-import-json" aria-label="Pulihkan dari backup JSON">
+            <i class="fas fa-upload me-1"></i> Restore
+          </button>
+          <input type="file" id="import-json-input" accept=".json,application/json" style="display:none"/>
           <button class="btn-export btn-export-pdf" id="btn-delete-all">
             <i class="fas fa-trash-alt me-1"></i> Hapus Semua Peserta
           </button>
@@ -217,6 +224,7 @@
   <script src="assets/js/theme.js"></script>
   <script src="assets/js/excel-transfer.js"></script>
   <script src="assets/js/app.js"></script>
+  <script src="assets/js/nav-enhance.js"></script>
   <!-- Firebase Realtime Database -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
