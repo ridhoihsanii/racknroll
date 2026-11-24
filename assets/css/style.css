@@ -1916,6 +1916,9 @@ button {
   .brand-sub { display: none; }
 }
 
+/* Main app is not zoomable on touch devices (only preview.html supports pinch-zoom) */
+html, body { touch-action: pan-x pan-y; }
+
 /* Minimum readable text on phones */
 @media (max-width: 767px) {
   .bilpos-section { font-size: 0.9rem; }

@@ -17,7 +17,7 @@ test('index.html provides the Bilpos SPA shell and required asset loading', () =
     '<!DOCTYPE html>',
     '<html lang="id">',
     '<meta charset="UTF-8"/>',
-    '<meta name="viewport" content="width=device-width, initial-scale=1.0"/>',
+    '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>',
     '<meta name="description" content="BILPOS - Professional Billiard Tournament Management System by Billiard Positif"/>',
     '<meta name="theme-color" content="#1A1214"/>',
     '<title>BILPOS — Billiard Positif Tournament System</title>',
