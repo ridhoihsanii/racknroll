@@ -1848,31 +1848,35 @@ button {
   .status-btn, .btn-delete-row, .zoom-btn, .btn-draw { min-height: 44px; }
   .table-input, .table-select, .hc-custom-input { min-height: 44px; font-size: 16px; }
 
-  /* Participant table → stacked cards */
+  /* Participant table → compact two-line rows */
   .participant-table { min-width: 0; font-size: 0.9rem; }
   .participant-table thead { display: none; }
-  .participant-table, .participant-table tbody, .participant-table tr, .participant-table td { display: block; width: 100%; }
+  .participant-table, .participant-table tbody { display: block; width: 100%; }
   .participant-table tbody tr {
-    padding: 12px;
+    display: grid;
+    grid-template-columns: 26px minmax(0, 1fr) minmax(0, 1fr) 56px;
+    column-gap: 6px;
+    row-gap: 6px;
+    align-items: center;
+    padding: 8px 10px;
     border-bottom: 1px solid var(--anteraja-border);
-    position: relative;
   }
-  .participant-table td { padding: 6px 0; border: 0; }
-  .participant-table td[data-label]::before {
-    content: attr(data-label);
-    display: block;
-    font-size: 0.75rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--anteraja-primary);
-    margin-bottom: 4px;
-  }
-  .participant-table .row-number { font-weight: 700; padding-bottom: 0; }
+  .participant-table tbody td { display: block; padding: 0; border: 0; min-width: 0; }
+  .participant-scroll-wrapper { max-height: none; overflow: visible; }
+  .participant-table td[data-label]::before { display: none; }
+  .participant-table .row-number { grid-row: 1; grid-column: 1; font-size: 0.8rem; font-weight: 700; text-align: center; }
+  .participant-table td[data-label="Nama"] { grid-row: 1; grid-column: 2 / 4; }
+  .participant-table .cell-actions { grid-row: 1; grid-column: 4; }
+  .participant-table td[data-label="Pembayaran"] { grid-row: 2; grid-column: 1 / 3; }
+  .participant-table td[data-label="HC"] { grid-row: 2; grid-column: 3; }
+  .participant-table td[data-label="Bracket"] { grid-row: 2; grid-column: 4; }
+  .participant-table .table-input, .participant-table .name-input, .participant-table .table-select { min-height: 36px; font-size: 14px; padding: 4px 8px; }
+  .participant-table .status-btn { min-height: 32px; padding: 4px 8px; font-size: 0.7rem; }
   .participant-table .hc-select,
   .participant-table .bracket-input { width: 100%; min-width: 0; }
-  .participant-table .bracket-input { text-align: left; }
-  .participant-table .btn-delete-row { margin-left: 0; width: 100%; }
+  .participant-table .bracket-input { text-align: center; padding: 4px; }
+  .participant-table .hc-custom-input { min-height: 34px; font-size: 13px; }
+  .participant-table .btn-delete-row { margin: 0; width: 100%; min-height: 36px; padding: 4px; }
 }
 
 /* Bottom tab bar navigation on tablets/phones (the header menu is otherwise hidden) */

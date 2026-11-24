@@ -407,22 +407,26 @@
 
 .mobile-round-list { display: flex; flex-direction: column; gap: 12px; }
 .mobile-round-list .match-card { width: 100%; height: auto; min-height: 0; gap: 6px; }
-.mobile-round-list .match-slot { flex-wrap: wrap; gap: 8px; padding: 8px 10px; }
+.mobile-round-list .match-slot { flex-wrap: nowrap; align-items: center; gap: 8px; padding: 6px 10px; }
 .mobile-round-list .participant-select,
 .mobile-round-list .participant-name,
 .mobile-round-list .participant-label {
-  font-size: 15px;
-  min-height: 44px;
-  flex: 1 1 100%;
+  font-size: 14px;
+  min-height: 40px;
+  flex: 1 1 0;
+  min-width: 0;
   display: flex;
   align-items: center;
 }
+.mobile-round-list .participant-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; line-height: 40px; }
 .mobile-round-list .score-input {
-  width: 72px;
-  min-height: 44px;
+  flex: 0 0 56px;
+  width: 56px;
+  min-height: 40px;
   font-size: 18px;
   text-align: center;
 }
+.mobile-round-list .match-slot .badge { display: none; }
 .mobile-round-list .live-btn { min-height: 36px; padding: 4px 14px; font-size: 12px; }
 
 .mobile-round-nav { display: flex; gap: 10px; margin-top: 14px; }
