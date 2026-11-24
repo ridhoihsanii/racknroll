@@ -1823,3 +1823,97 @@ button {
 [data-theme="light"] .empty-state { color: #9c8a8e; }
 [data-theme="light"] .empty-state h5 { color: #6b5a5e; }
 [data-theme="light"] .empty-state p { color: #9c8a8e; }
+
+.btn-preview-bracket {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1.5px solid var(--anteraja-border-active);
+  background: rgba(237,6,119,0.07);
+  color: var(--anteraja-primary);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: .5px;
+  transition: background .15s, border-color .15s;
+}
+
+/* ── Mobile refinements ──────────────────────────────────── */
+@media (max-width: 575.98px) {
+  .btn-preview-bracket { min-height: 44px; font-size: 13px; width: 100%; justify-content: center; }
+  .theme-toggle, .hamburger-btn { min-width: 44px; min-height: 44px; }
+  .status-btn, .btn-delete-row, .zoom-btn, .btn-draw { min-height: 44px; }
+  .table-input, .table-select, .hc-custom-input { min-height: 44px; font-size: 16px; }
+
+  /* Participant table → stacked cards */
+  .participant-table { min-width: 0; font-size: 0.9rem; }
+  .participant-table thead { display: none; }
+  .participant-table, .participant-table tbody, .participant-table tr, .participant-table td { display: block; width: 100%; }
+  .participant-table tbody tr {
+    padding: 12px;
+    border-bottom: 1px solid var(--anteraja-border);
+    position: relative;
+  }
+  .participant-table td { padding: 6px 0; border: 0; }
+  .participant-table td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--anteraja-primary);
+    margin-bottom: 4px;
+  }
+  .participant-table .row-number { font-weight: 700; padding-bottom: 0; }
+  .participant-table .hc-select,
+  .participant-table .bracket-input { width: 100%; min-width: 0; }
+  .participant-table .bracket-input { text-align: left; }
+  .participant-table .btn-delete-row { margin-left: 0; width: 100%; }
+}
+
+/* Bottom tab bar navigation on tablets/phones (the header menu is otherwise hidden) */
+@media (max-width: 991.98px) {
+  .bilpos-header,
+  [data-theme="light"] .bilpos-header { backdrop-filter: none; -webkit-backdrop-filter: none; background: var(--bg); }
+  .header-center {
+    display: block;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 950;
+    background: var(--bg-alt);
+    border-top: 1px solid var(--anteraja-border);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .top-taskbar { gap: 0; width: 100%; }
+  .top-taskbar .sidebar-nav-item {
+    flex: 1;
+    min-height: 56px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 6px 2px;
+    border-radius: 0;
+    border: 0;
+    font-size: 11px;
+    text-align: center;
+    line-height: 1.15;
+  }
+  .top-taskbar .sidebar-nav-item.active { border: 0; border-top: 2px solid var(--anteraja-primary); }
+  .bilpos-main { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
+  .bilpos-section { scroll-margin-top: calc(var(--header-height) + 8px); }
+  .brand-sub { display: none; }
+}
+
+/* Minimum readable text on phones */
+@media (max-width: 767px) {
+  .bilpos-section { font-size: 0.9rem; }
+  .section-subtitle, .header-badge, .stat-label { font-size: 0.8rem; }
+}

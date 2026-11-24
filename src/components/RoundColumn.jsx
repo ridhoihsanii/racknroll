@@ -13,7 +13,7 @@ function getRoundLabel(roundIdx, totalRounds) {
 
 // Global sequential match number offset for this round
 // (sum of all matches in preceding rounds)
-function getMatchNumOffset(roundIdx, totalRounds) {
+export function getMatchNumOffset(roundIdx, totalRounds) {
   var totalSlots = Math.pow(2, totalRounds);
   var offset = 0;
   for (var r = 0; r < roundIdx; r++) {

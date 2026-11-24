@@ -349,10 +349,94 @@
   .match-area    { width: 220px; }
   .match-wrapper { width: 220px; }
   .match-card    { width: 220px; }
-  .score-input   { width: 36px; }
+  .score-input   { width: 44px; min-height: 32px; font-size: 12px; }
   .participant-select,
-  .participant-label { font-size: 9px; }
+  .participant-label { font-size: 12px; }
 }
+
+/* ──── Mobile per-round view ──────────────────────────────────── */
+.mobile-view-toggle {
+  width: 100%;
+  min-height: 44px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  border: 1px dashed var(--anteraja-border-active, #ed0677);
+  background: transparent;
+  color: var(--anteraja-primary, #ed0677);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.mobile-round-tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 0 10px;
+  position: sticky;
+  top: var(--header-height, 64px);
+  z-index: 20;
+  background: var(--bg);
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.mobile-round-tabs::-webkit-scrollbar { display: none; }
+
+.mobile-round-tab {
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding: 6px 14px;
+  border-radius: 22px;
+  border: 1px solid var(--anteraja-border, #3a2a30);
+  background: transparent;
+  color: var(--text-secondary, #aaa);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.2;
+}
+.mobile-round-tab.active {
+  background: var(--anteraja-primary, #ed0677);
+  border-color: var(--anteraja-primary, #ed0677);
+  color: #fff;
+}
+.mobile-round-progress { font-size: 11px; opacity: 0.85; font-weight: 500; }
+
+.mobile-round-list { display: flex; flex-direction: column; gap: 12px; }
+.mobile-round-list .match-card { width: 100%; height: auto; min-height: 0; gap: 6px; }
+.mobile-round-list .match-slot { flex-wrap: wrap; gap: 8px; padding: 8px 10px; }
+.mobile-round-list .participant-select,
+.mobile-round-list .participant-name,
+.mobile-round-list .participant-label {
+  font-size: 15px;
+  min-height: 44px;
+  flex: 1 1 100%;
+  display: flex;
+  align-items: center;
+}
+.mobile-round-list .score-input {
+  width: 72px;
+  min-height: 44px;
+  font-size: 18px;
+  text-align: center;
+}
+.mobile-round-list .live-btn { min-height: 36px; padding: 4px 14px; font-size: 12px; }
+
+.mobile-round-nav { display: flex; gap: 10px; margin-top: 14px; }
+.mobile-round-nav button {
+  flex: 1;
+  min-height: 48px;
+  border-radius: 8px;
+  border: 1px solid var(--anteraja-border-active, #ed0677);
+  background: transparent;
+  color: var(--anteraja-primary, #ed0677);
+  font-weight: 600;
+  font-size: 14px;
+}
+.mobile-round-nav button:disabled { opacity: 0.35; }
 
 /* ──── Light theme overrides ──────────────────────────────────── */
 [data-theme='light'] .match-card {

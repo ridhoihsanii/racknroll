@@ -312,7 +312,7 @@
         rows.push(
           '<tr id="row-' + i + '" data-row="' + i + '" data-current-status="' + escapeHtml(status) + '" class="' + rowClass + '">' +
             '<td class="row-number">' + i + '</td>' +
-            '<td>' +
+            '<td data-label="Pembayaran">' +
               '<div class="d-flex gap-1">' +
                 '<button class="status-btn cash ' + cashActive + '" data-row="' + i + '" data-status="cash">' +
                   '<i class="fas fa-money-bill"></i> CASH' +
@@ -322,10 +322,10 @@
                 '</button>' +
               '</div>' +
             '</td>' +
-            '<td>' +
+            '<td data-label="Nama">' +
               '<input type="text" class="table-input name-input" data-row="' + i + '" placeholder="Nama peserta..." value="' + escapeHtml(name) + '" maxlength="40"/>' +
             '</td>' +
-            '<td>' +
+            '<td data-label="HC">' +
               '<select class="table-select hc-select" data-row="' + i + '">' +
                 '<option value="">— HC —</option>' +
                 '<option value="HC Pemula"' + (hcValue === 'HC Pemula' ? ' selected' : '') + '>HC Pemula</option>' +
@@ -337,10 +337,10 @@
               '</select>' +
               '<input type="text" class="hc-custom-input ' + customVisible + '" data-row="' + i + '" placeholder="Tulis HC..." value="' + escapeHtml(hcCustom) + '" maxlength="20"/>' +
             '</td>' +
-            '<td>' +
+            '<td data-label="Bracket">' +
               '<input type="number" class="table-input bracket-input" data-row="' + i + '" min="1" max="' + size + '" placeholder="-" value="' + escapeHtml(participant && participant.drawingNumber != null ? participant.drawingNumber : '') + '"/>' +
             '</td>' +
-            '<td>' +
+            '<td class="cell-actions">' +
               '<button class="btn-delete-row btn-export" data-row="' + i + '" data-participant-id="' + escapeHtml(participantId) + '"><i class="fas fa-trash"></i></button>' +
             '</td>' +
           '</tr>'
